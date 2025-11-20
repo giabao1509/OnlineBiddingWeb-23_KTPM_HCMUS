@@ -1,0 +1,29 @@
+{
+  "name": "23_ktpm_project",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/giabao1509/OnlineBiddingWeb-23_KTPM_HCMUS.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/giabao1509/OnlineBiddingWeb-23_KTPM_HCMUS/issues"
+  },
+  "homepage": "https://github.com/giabao1509/OnlineBiddingWeb-23_KTPM_HCMUS#readme",
+  "description": "",
+  "dependencies": {
+    "express": "^5.1.0",
+    "express-handlebars": "^8.0.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}
