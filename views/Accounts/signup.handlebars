@@ -1,0 +1,168 @@
+{{#section "css"}}
+<style>
+.divider:after,
+.divider:before {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #eee;
+}
+
+/* Ô OTP ngắn */
+#otp {
+  max-width: 180px;
+}
+
+/* Nút send OTP khi disable */
+.btn-otp-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+  transition: 0.3s;
+}
+</style>
+{{/section}}
+
+
+{{#section "js"}}
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+<script>
+let otpCooldown = false;
+
+async function sendOTP() {
+  if (otpCooldown) return;
+
+  const email = document.querySelector("#email").value.trim();
+  const btn = document.querySelector("#btnSendOTP");
+
+  if (!email) {
+    alert("Please enter your email first!");
+    return;
+  }
+
+  
+  otpCooldown = true;
+  btn.classList.add("btn-otp-disabled");
+  btn.innerText = "Sending...";
+
+  try {
+    const res = await fetch("/accounts/send-otp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+
+    const data = await res.json();
+    alert(data.message || "OTP sent!");
+  } catch (err) {
+    alert("Error sending OTP!");
+  }
+
+  // Bắt đầu countdown 60s
+  let timeLeft = 60;
+  const countdown = setInterval(() => {
+    btn.innerText = `Wait ${timeLeft}s`;
+    timeLeft--;
+
+    if (timeLeft < 0) {
+      clearInterval(countdown);
+      otpCooldown = false;
+      btn.classList.remove("btn-otp-disabled");
+      btn.innerText = "Send OTP";
+    }
+  }, 1000);
+}
+</script>
+{{/section}}
+
+
+<section class="vh-100">
+  <div class="container py-5 h-100">
+    <div class="row d-flex align-items-center justify-content-center h-100">
+      
+      <!-- Image -->
+      <div class="col-md-8 col-lg-7 col-xl-6">
+        <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.svg"
+             class="img-fluid" alt="Illustration">
+      </div>
+
+      <!-- Form -->
+      <div class="col-md-7 col-lg-5 col-xl-5 offset-xl-1">
+        <form method="post">
+
+          <!-- Full Name -->
+          <div class="form-outline mb-4">
+            <label class="form-label" for="fullName">Full Name</label>
+            <input type="text" id="fullName" name="fullName" class="form-control form-control-lg" />
+          </div>
+
+          <!-- Address -->
+          <div class="form-outline mb-4">
+            <label class="form-label" for="address">Address</label>
+            <input type="text" id="address" name="address" class="form-control form-control-lg" />
+          </div>
+
+          <!-- Email -->
+          <div class="form-outline mb-4">
+            <label class="form-label" for="email">Email address</label>
+            <input type="email" id="email" name="email" class="form-control form-control-lg" />
+          </div>
+
+         
+
+          <!-- OTP Input -->
+          <div class="mb-4">
+            <label class="form-label" for="otp">Enter OTP</label>
+
+            <div class="d-flex align-items-center gap-5">
+                <input type="text" id="otp" name="otp" class="form-control" style="max-width: 180px;">
+
+                <button type="button" id="btnSendOTP" onclick="sendOTP()" 
+                        class="btn btn-primary" style="white-space: nowrap;">
+                Send OTP
+                </button>
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div class="form-outline mb-4">
+            <label class="form-label" for="password">Password</label>
+            <input type="password" id="password" name="password" class="form-control form-control-lg" />
+          </div>
+
+          <!-- Confirm Password -->
+          <div class="form-outline mb-4">
+            <label class="form-label" for="confirmPassword">Confirm Password</label>
+            <input type="password" id="confirmPassword" name="confirmPassword" class="form-control form-control-lg" />
+          </div>
+
+          <!-- reCAPTCHA -->
+          <div class="mb-4">
+            <div class="g-recaptcha" data-sitekey={{RECAPTCHA_SITE_KEY}}></div>
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" class="btn btn-primary btn-lg btn-block">
+            Sign Up
+          </button>
+
+          <div class="divider d-flex align-items-center my-4">
+            <p class="text-center fw-bold mx-3 mb-0 text-muted">OR</p>
+          </div>
+
+          <!-- Social -->
+          <a class="btn btn-primary btn-lg btn-block" style="background-color: #3b5998" href="#!">
+            <i class="fab fa-facebook-f me-2"></i>Continue with Facebook
+          </a>
+          <a class="btn btn-primary btn-lg btn-block" style="background-color: #55acee" href="#!">
+            <i class="fab fa-twitter me-2"></i>Continue with Twitter
+          </a>
+
+          <p class="text-center mt-3">Already have an account? <a href="/login">Sign In</a></p>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+</section>
