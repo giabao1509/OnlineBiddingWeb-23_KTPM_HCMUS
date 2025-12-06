@@ -9,7 +9,7 @@ export function addAccount(account) {
 
 import nodemailer from "nodemailer";
 
-export async function sendOTPEmail(toEmail, otp) {
+export async function sendOTPEmail(toEmail, otp_code) {
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 465,
@@ -24,10 +24,10 @@ export async function sendOTPEmail(toEmail, otp) {
   });
 
   const mailOptions = {
-    from: `"My App" <${process.env.EMAIL_USER}>`,   // CHỈNH CHỖ NÀY
+    from: `"My App" <${process.env.EMAIL_USER}>`, 
     to: toEmail,
     subject: "Your OTP Code",
-    html: `<p>Your OTP code is <b>${otp}</b></p>`
+    html: `<p>Your OTP code is <b>${otp_code}</b></p>`
   };
 
   await transporter.sendMail(mailOptions);
@@ -36,4 +36,17 @@ export async function sendOTPEmail(toEmail, otp) {
 
 export function addOTP(otp) {
     return db('otp').insert(otp);
+}
+
+
+export function getOTP(email) {
+    return db('otp').where('email', email).first();
+}
+
+export function deleteOTP(email) {
+    return db('otp').where('email', email).del();
+}
+
+export function getAccountByEmail(email) {
+    return db('user_account').where('email', email).first();
 }
