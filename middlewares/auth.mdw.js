@@ -1,4 +1,5 @@
 import axios from "axios";
+import { verifyToken } from '../utils/jwt.js';
 
 export async function verifyCaptcha(req, res, next) {
   const token = req.body["g-recaptcha-response"];
@@ -47,3 +48,30 @@ export async function verifyCaptcha(req, res, next) {
     });
   }
 }
+
+
+
+export function isAuth(req, res, next) {
+    const token = req.cookies.authToken;
+    if (!token) return res.redirect('/accounts/signin');
+
+    try {
+        req.user = verifyToken(token);
+        next();
+    } catch(err) {
+        res.clearCookie('authToken');
+        res.redirect('/accounts/signin');
+    }
+}
+
+export function isAdmin(req, res, next) {
+    if (req.user && req.user.role === 'admin') return next();
+    res.status(403).send('Access denied');
+}
+
+export function attachUserToView(req, res, next) {
+    res.locals.isAuthenticated = !!req.user;
+    res.locals.authUser = req.user || null;
+    next();
+}
+

@@ -1,0 +1,129 @@
+{{#section "css"}}
+<style>
+.divider:after,
+.divider:before {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #eee;
+}
+
+.h-custom {
+  height: calc(100% - 73px);
+}
+
+@media (max-width: 450px) {
+  .h-custom {
+    height: 100%;
+  }
+}
+</style>
+{{/section}}
+
+{{#section "js"}}
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!--Validation Information-->
+<script>
+document.querySelector('#formSignIn').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const email = document.querySelector('#email').value.trim();
+    const password = document.querySelector('#password').value;
+
+    if (!email || !password) {
+        Swal.fire({
+            title: 'Validation Error',
+            text: 'Please enter both email and password.',
+            icon: 'error'
+        });
+        return;
+    }
+
+    // Nếu hợp lệ, submit form
+    e.target.submit();
+});
+</script>
+
+<script>
+    {{#if error}}
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: "{{{error}}}"
+        });
+    {{/if}}
+
+    {{#if success}}
+        Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: "{{{success}}}"
+        });
+    {{/if}}
+</script>
+{{/section}}
+
+<section class="vh-100">
+    <div class="container py-5 h-100">
+        <div class="row d-flex align-items-center justify-content-center h-100">
+
+        <!-- Image -->
+        <div class="col-md-8 col-lg-7 col-xl-6">
+            <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.svg"
+                class="img-fluid" alt="Illustration">
+        </div>
+
+        <!-- Form -->
+        <div class="col-md-7 col-lg-5 col-xl-5 offset-xl-1">
+        <form method="post" id="formSignIn">
+
+            <!-- Email -->
+            <div class="form-outline mb-4">
+            <label class="form-label" for="email">Email address</label>
+            <input type="email" id="email" name="email" value="{{email}}" class="form-control form-control-lg" />
+            </div>
+
+            <!-- Password -->
+            <div class="form-outline mb-2">
+            <label class="form-label" for="password">Password</label>
+            <input type="password" id="password" name="password" class="form-control form-control-lg" />
+            </div>
+
+            <!-- Forgot password -->
+            <div class="text-end mb-4">
+            <a href="/accounts/forgotpassword" class="text-center">Forgot password?</a>
+            </div>
+
+            <!-- reCAPTCHA -->
+            <div class="mb-4">
+            <div class="g-recaptcha" data-sitekey={{RECAPTCHA_SITE_KEY}}></div>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="btn btn-primary btn-lg btn-block">
+            Sign In
+            </button>
+
+            <div class="divider d-flex align-items-center my-4">
+            <p class="text-center fw-bold mx-3 mb-0 text-muted">OR</p>
+            </div>
+
+            <!-- Social -->
+            <a class="btn btn-primary btn-lg btn-block" style="background-color: #3b5998" href="#!">
+            <i class="fab fa-facebook-f me-2"></i>Continue with Facebook
+            </a>
+            <a class="btn btn-primary btn-lg btn-block" style="background-color: #55acee" href="#!">
+            <i class="fab fa-twitter me-2"></i>Continue with Twitter
+            </a>
+
+            <p class="text-center mt-3">Don't have an account? <a href="/accounts/signup">Sign Up</a></p>
+
+        </form>
+        </div>
+
+
+    </div>
+  </div>
+</section>

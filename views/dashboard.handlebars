@@ -1,0 +1,126 @@
+{{#section "css"}}
+<style>
+body, html {
+    height: 100%;
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+/* Sidebar */
+.sidebar {
+    height: 100%;
+    width: 220px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #343a40;
+    padding-top: 20px;
+    color: #fff;
+}
+
+.sidebar a {
+    display: block;
+    color: #fff;
+    padding: 12px 20px;
+    text-decoration: none;
+    margin-bottom: 4px;
+    border-radius: 4px;
+    transition: 0.3s;
+}
+
+.sidebar a:hover {
+    background-color: #495057;
+}
+
+/* Header */
+.header {
+    margin-left: 220px;
+    padding: 15px 20px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Main content */
+.main {
+    margin-left: 220px;
+    padding: 20px;
+}
+
+/* Cards inside main content */
+.card {
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+    .sidebar a { display: inline-block; }
+    .header, .main { margin-left: 0; }
+}
+</style>
+{{/section}}
+
+{{#section "js"}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    Swal.fire({
+      icon: 'success',
+      title: 'Welcome!',
+      text: 'You are now logged in to the dashboard.'
+    });
+  });
+</script>
+{{/section}}
+
+<section>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2 style="text-align:center; margin-bottom:20px;">Dashboard</h2>
+    <a href="#home">Home</a>
+    <a href="#profile">Profile</a>
+    <a href="#settings">Settings</a>
+    <a href="#reports">Reports</a>
+    <form action="/accounts/signout" method="post" style="margin-top:20px;">
+      <button type="submit" class="sidebar-link-btn">Signout</button>
+    </form>
+  </div>
+
+  <!-- Header -->
+  <div class="header">
+    <h3>Dashboard Overview</h3>
+  </div>
+
+  <!-- Main content -->
+  <div class="main">
+    <div class="card">
+      <h4>Statistics</h4>
+      <p>Total Users: 120</p>
+      <p>Active Sessions: 45</p>
+    </div>
+
+    <div class="card">
+      <h4>Recent Activity</h4>
+      <ul>
+        <li>User John logged in</li>
+        <li>User Anna updated profile</li>
+        <li>New report generated</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h4>Quick Actions</h4>
+      <button class="btn btn-primary">Add User</button>
+      <button class="btn btn-secondary">Generate Report</button>
+    </div>
+  </div>
+</section>

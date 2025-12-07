@@ -1,14 +1,20 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from 'express';
 import { engine } from 'express-handlebars';
 import expressHandlebarsSections from 'express-handlebars-sections';
 import accountRouter from './routes/account.route.js';
-import dotenv from "dotenv";
-dotenv.config();
+
+import cookieParser from 'cookie-parser';
+
+
 
 const PORT = process.env.PORT || 3000;
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 app.engine('handlebars', engine({
   helpers: {
@@ -22,13 +28,15 @@ app.set('view engine', 'handlebars');
 app.set('views', './views');
 
 
+
 app.get('/', (req, res) => {
-    res.render('Accounts/signup');
+   console.log(">>> JWT_SECRET in jwt.js =", process.env.JWT_SECRET);
 });
 
 
 
 app.use('/accounts', accountRouter);
+
 
 app.listen(PORT, function () {
   console.log(`Server is running on http://localhost:${PORT}`);

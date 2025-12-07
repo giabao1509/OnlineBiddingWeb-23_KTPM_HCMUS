@@ -1,7 +1,10 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import * as accountService from '../services/account.service.js';
-import { verifyCaptcha } from '../middlewares/auth.mdw.js';
+import { verifyCaptcha, isAuth} from '../middlewares/auth.mdw.js';
+import { generateToken, generateOTPToken, verifyToken } from '../utils/jwt.js';
+import { sendOTPEmail, generateOTP } from '../utils/otp.js';
+
 
 const router = express.Router();
 
@@ -68,12 +71,12 @@ router.post('/signup', verifyCaptcha, async (req, res) => {
 });
 
 
-router.post("/send-otp", async (req, res) => {
+router.post('/send-otp', async (req, res) => {
   const email  = req.body.email;
 
   await accountService.deleteOTP(email);
 
-  const otp_code = Math.floor(100000 + Math.random() * 900000).toString();
+  const otp_code = generateOTP();
 
   const otp = {
     email: email,
@@ -83,12 +86,145 @@ router.post("/send-otp", async (req, res) => {
 
   await accountService.addOTP(otp)
 
-  await accountService.sendOTPEmail(email, otp_code);
+  sendOTPEmail(email, otp_code);
 
   res.json({ success: true, message: "OTP sent!" });
 });
 
 
 
+router.get('/signin', async (req, res) => { 
+    res.render('Accounts/signin', {RECAPTCHA_SITE_KEY: process.env.RECAPTCHA_SITE_KEY});
+});
+
+router.post('/signin', async (req, res) => {
+    const email = req.body.email
+    const password = req.body.password 
+    const user = await accountService.getAccountByEmail(email);
+
+    if (!user || !bcrypt.compareSync(password, user.password)) {
+        return res.render('Accounts/signin', { 
+            error: 'Email or password is incorrect',
+            email: email
+        });
+    }
+
+    const token = generateToken(user);
+    res.cookie('authToken', token, { httpOnly: true, maxAge: 3600*1000 });
+    res.redirect('/accounts/dashboard');
+});
+
+router.get('/dashboard', isAuth, async (req, res) => { 
+    res.render('dashboard');
+});
+
+
+router.get('/forgotpassword', async (req, res) => { 
+    res.render('Accounts/forgotpassword');
+});
+
+router.post('/forgotpassword', async (req, res) => { 
+    const email = req.body.email;
+
+    // Xóa OTP cũ nếu có
+    await accountService.deleteOTP(email);
+
+    // Tạo OTP mới
+    const otp_code = generateOTP();
+    const otp = {
+        email: email,
+        code: otp_code,
+        expired_at: new Date(Date.now() + 5 * 60 * 1000)
+    };
+    await accountService.addOTP(otp);
+
+    
+    sendOTPEmail(email, otp_code);
+
+    
+    const token = generateOTPToken(email);
+
+    
+    res.cookie('resetToken', token, { httpOnly: true, maxAge: 5 * 60 * 1000 });
+
+    
+    res.redirect('/accounts/verifyotp');
+});
+
+
+
+router.get('/verifyotp', (req, res) => {
+    res.render('Accounts/verifyotp');
+});
+
+
+router.post('/verifyotp', async (req, res) => {
+    const otp = req.body.otp;
+    const token = req.cookies.resetToken;
+
+    if (!token) {
+        return res.render("Accounts/verifyotp", { error: "Missing or expired token." });
+    }
+
+    let email;
+    try {
+        const decoded = verifyToken(token);  
+        email = decoded.email;
+    } catch(err) {
+        return res.render("Accounts/verifyotp", { error: "Invalid or expired token." });
+    }
+
+    const recordedOTP = await accountService.getOTP(email);
+    if (!recordedOTP) {
+        return res.render("Accounts/verifyotp", { error: "OTP expired or not found." });
+    }
+
+    if (recordedOTP.code !== otp) {
+        return res.render("Accounts/verifyotp", { error: "Invalid OTP." });
+    }
+
+    
+    await accountService.deleteOTP(email);
+
+    
+    res.redirect('/accounts/resetpassword');
+});
+
+
+router.get('/resetpassword', (req, res) => {
+    res.render('Accounts/resetpassword');
+});
+
+
+router.post('/resetpassword', async (req, res) => {
+    const token = req.cookies.resetToken;
+
+    if (!token) {
+        return res.render("Accounts/resetpassword", { error: "Missing or expired token." });
+    }
+
+    let email;
+    try {
+        const decoded = verifyToken(token);  
+        email = decoded.email;
+    } catch(err) {
+        return res.render("Accounts/resetpassword", { error: "Invalid or expired token." });
+    }
+
+    const newPassword = req.body.password
+
+    const hashedPassword = bcrypt.hashSync(newPassword, 10);
+
+    await accountService.updatePassword(email, hashedPassword)
+    res.clearCookie('resetToken')
+    res.render('Accounts/resetpassword', {success: "Password has been changed.", disabled: true });
+});
+
+
+router.post('/signout', isAuth, function (req, res) {
+  res.clearCookie('authToken');
+  const retUrl = req.headers.referer || '/';
+  res.redirect(retUrl);
+});
 
 export default router;
