@@ -4,7 +4,7 @@ import db from '../utils/db.js';
 
 
 export function addAccount(account) {
-    return db('user_account').insert(account);
+    return db('user_account').insert(account).returning('*');
 }
 
 export function addOTP(otp) {
@@ -27,4 +27,15 @@ export function getAccountByEmail(email) {
 
 export function updatePassword(email, newPassword) {
     return db('user_account').where('email', email).update('password', newPassword);
+}
+
+
+export function getAccountByGoogleId(googleId) {
+    return db('user_account').where({ googleId }).first();
+}
+
+export function linkGoogleId(userId, googleId) {
+    return db('user_account')
+        .where({ id: userId })
+        .update({ googleId });
 }

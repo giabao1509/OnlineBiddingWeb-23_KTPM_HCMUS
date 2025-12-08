@@ -4,6 +4,8 @@ import * as accountService from '../services/account.service.js';
 import { verifyCaptcha, isAuth} from '../middlewares/auth.mdw.js';
 import { generateToken, generateOTPToken, verifyToken } from '../utils/jwt.js';
 import { sendOTPEmail, generateOTP } from '../utils/otp.js';
+import { OAuth2Client } from 'google-auth-library';
+
 
 
 const router = express.Router();
@@ -93,8 +95,13 @@ router.post('/send-otp', async (req, res) => {
 
 
 
+
+
 router.get('/signin', async (req, res) => { 
-    res.render('Accounts/signin', {RECAPTCHA_SITE_KEY: process.env.RECAPTCHA_SITE_KEY});
+    res.render('Accounts/signin', {
+        RECAPTCHA_SITE_KEY: process.env.RECAPTCHA_SITE_KEY,
+        googleClientId: process.env.GOOGLE_CLIENT_ID
+    });
 });
 
 router.post('/signin', async (req, res) => {
@@ -105,13 +112,63 @@ router.post('/signin', async (req, res) => {
     if (!user || !bcrypt.compareSync(password, user.password)) {
         return res.render('Accounts/signin', { 
             error: 'Email or password is incorrect',
-            email: email
+            email: email,
+            RECAPTCHA_SITE_KEY: process.env.RECAPTCHA_SITE_KEY
         });
     }
 
     const token = generateToken(user);
     res.cookie('authToken', token, { httpOnly: true, maxAge: 3600*1000 });
     res.redirect('/accounts/dashboard');
+});
+
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+router.post('/google-signin', async (req, res) => {
+  const { token } = req.body;
+
+  if (!token) return res.status(400).json({ message: 'Missing token' });
+
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID
+    });
+
+    const payload = ticket.getPayload();
+    const { sub: googleId, email, given_name: firstName, family_name: lastName, picture } = payload;
+
+    let user = await accountService.getAccountByGoogleId(googleId);
+
+    if (!user) {
+      user = await accountService.getAccountByEmail(email);
+
+      if (user) {
+        await accountService.linkGoogleId(user.id, googleId);
+      } else {
+        const [newUser] = await accountService.addAccount({
+          full_name: `${firstName} ${lastName}`,
+          email,
+          password: null,
+          googleId,
+          created_at: new Date(),
+          role: 0,
+          address: null
+        });
+
+        user = newUser;
+      }
+    }
+
+    const jwtToken = generateToken({ userId: user.id, email: user.email, role: user.role },);
+
+    res.cookie('authToken', jwtToken, { httpOnly: true, maxAge: 3600*1000 });
+    res.json({ success: true, user });
+
+  } catch (err) {
+    console.error(err);
+    res.status(401).json({ message: 'Invalid Google token' });
+  }
 });
 
 router.get('/dashboard', isAuth, async (req, res) => { 

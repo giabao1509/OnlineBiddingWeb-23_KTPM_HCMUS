@@ -30,7 +30,7 @@ app.set('views', './views');
 
 
 app.get('/', (req, res) => {
-   console.log(">>> JWT_SECRET in jwt.js =", process.env.JWT_SECRET);
+  res.render('home')
 });
 
 
