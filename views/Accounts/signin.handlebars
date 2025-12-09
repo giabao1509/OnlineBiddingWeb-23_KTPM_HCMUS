@@ -21,7 +21,6 @@
 {{/section}}
 
 {{#section "js"}}
-
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -126,7 +125,7 @@ window.onload = function() {
                     <p class="text-muted">Welcome back!</p>
                 </div>
 
-                <form method="POST">
+                <form method="POST" id="formSignIn">
                     <div class="mb-3">
                         <label for="email" class="form-label">Email</label>
                         <div class="input-group">
@@ -170,7 +169,7 @@ window.onload = function() {
                     </div>
 
                     <div class="row g-2 mb-3">
-                         <div class="col-6">
+                        <div class="col-6">
                             <div id="googleSignInBtn"></div>
                         </div>
 

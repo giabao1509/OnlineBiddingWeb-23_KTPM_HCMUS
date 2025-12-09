@@ -39,3 +39,5 @@ export function linkGoogleId(userId, googleId) {
         .where({ id: userId })
         .update({ googleId });
 }
+
+

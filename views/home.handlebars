@@ -1,119 +1,160 @@
-<!-- Uncomment this section to use the registration page -->
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card border-0 shadow-lg">
-            <div class="card-body p-5">
-                <div class="text-center mb-4">
-                    <i class="bi bi-person-plus text-primary" style="font-size: 3rem;"></i>
-                    <h2 class="mt-3">Create an Account</h2>
-                    <p class="text-muted">Create an account to start bidding</p>
+<!-- ===== HERO ===== -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="card bg-primary text-white border-0 shadow-lg">
+            <div class="card-body p-5 text-center">
+                <h1 class="display-4 fw-bold mb-3">Welcome to AuctionHub</h1>
+                <p class="lead mb-4">Vietnam's Leading Online Auction Platform</p>
+
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a href="/auctions" class="btn btn-light btn-lg">
+                        <i class="bi bi-search"></i> Explore Auctions
+                    </a>
+                    <a href="/accounts/signup" class="btn btn-outline-light btn-lg">
+                        <i class="bi bi-person-plus"></i> Register Now
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== TOP 5 ENDING SOON ===== -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="mb-4">
+            <i class="bi bi-clock-history text-danger"></i> Top 5 Auctions Ending Soon
+        </h2>
+    </div>
+</div>
+
+<div class="row mb-5">
+    {{#each endingSoon}}
+    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+        <div class="card h-100 shadow-sm border-0">
+
+            <!-- <img src="{{this.image}}" class="card-img-top" alt="{{this.title}}" style="height: 200px; object-fit: cover;"> -->
+            <img src="https://picsum.photos/400/300?random={{@index}}"
+                 class="card-img-top"
+                 alt="{{this.title}}"
+                 style="height:200px;object-fit:cover;">
+
+            <div class="card-body d-flex flex-column">
+                <span class="badge bg-danger mb-2 align-self-start">Ending Soon</span>
+                <h5 class="card-title">{{this.title}}</h5>
+
+                <p class="small text-muted flex-grow-1">{{this.description}}</p>
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <small>Current Bid:</small>
+                        <strong class="text-success">{{this.currentBid}} VND</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <small>Ends:</small>
+                        <small class="text-danger">
+                            <i class="bi bi-clock"></i> {{this.endTime}}
+                        </small>
+                    </div>
                 </div>
 
-                <form action="/register" method="POST">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="firstName" class="form-label">First Name</label>
-                            <input type="text" class="form-control" id="firstName" name="firstName" 
-                                   placeholder="Nguyen" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="lastName" class="form-label">Last Name</label>
-                            <input type="text" class="form-control" id="lastName" name="lastName" 
-                                   placeholder="Van A" required>
-                        </div>
-                    </div>
+                <a href="/auctions/{{this.id}}" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-eye"></i> View Details
+                </a>
+            </div>
+        </div>
+    </div>
+    {{/each}}
+</div>
 
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                            <input type="email" class="form-control" id="email" name="email" 
-                                   placeholder="email@example.com" required>
-                        </div>
-                        <small class="text-muted">This email will be used to login</small>
-                    </div>
+<!-- ===== TOP 5 MOST ACTIVE ===== -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="mb-4">
+            <i class="bi bi-graph-up-arrow text-primary"></i> Top 5 Most Active Auctions
+        </h2>
+    </div>
+</div>
 
-                    <div class="mb-3">
-                        <label for="phone" class="form-label">Phone Number</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-phone"></i></span>
-                            <input type="tel" class="form-control" id="phone" name="phone" 
-                                   placeholder="0912345678" required>
-                        </div>
-                    </div>
+<div class="row mb-5">
+    {{#each mostBids}}
+    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+        <div class="card h-100 shadow-sm border-0">
 
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                            <input type="password" class="form-control" id="password" name="password" 
-                                   placeholder="••••••••" required minlength="6">
-                        </div>
-                        <small class="text-muted">Minimum 6 characters</small>
-                    </div>
+            <!-- <img src="{{this.image}}" class="card-img-top" alt="{{this.title}}" style="height: 200px; object-fit: cover;"> -->
+            <img src="https://picsum.photos/400/300?random={{@index}}"
+                 class="card-img-top"
+                 alt="{{this.title}}"
+                 style="height:200px;object-fit:cover;">
 
-                    <div class="mb-3">
-                        <label for="confirmPassword" class="form-label">Confirm Password</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
-                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" 
-                                   placeholder="••••••••" required>
-                        </div>
-                    </div>
+            <div class="card-body d-flex flex-column">
+                <span class="badge bg-primary mb-2 align-self-start">🔥 {{this.bidCount}} bids</span>
+                <h5 class="card-title">{{this.title}}</h5>
 
-                    <div class="mb-3">
-                        <label for="userType" class="form-label">Account Type</label>
-                        <select class="form-select" id="userType" name="userType" required>
-                            <option value="">-- Select account type --</option>
-                            <option value="buyer">Buyer</option>
-                            <option value="seller">Seller</option>
-                            <option value="both">Both</option>
-                        </select>
-                    </div>
+                <p class="small text-muted flex-grow-1">{{this.description}}</p>
 
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
-                            <label class="form-check-label" for="terms">
-                                I agree to the 
-                                <a href="/terms" target="_blank">Terms of Service</a> and 
-                                <a href="/privacy" target="_blank">Privacy Policy</a>
-                            </label>
-                        </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <small>Current Bid:</small>
+                        <strong class="text-success">{{this.currentBid}} VND</strong>
                     </div>
+                </div>
 
-                    <div class="d-grid mb-3">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="bi bi-person-plus"></i> Sign Up
-                        </button>
-                    </div>
+                <a href="/auctions/{{this.id}}" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-eye"></i> View Details
+                </a>
+            </div>
+        </div>
+    </div>
+    {{/each}}
+</div>
 
-                    <div class="text-center mb-3">
-                        <span class="text-muted">or sign up with</span>
-                    </div>
+<!-- ===== TOP 5 HIGHEST PRICE ===== -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="mb-4">
+            <i class="bi bi-cash-coin text-success"></i> Top 5 Highest Priced Auctions
+        </h2>
+    </div>
+</div>
 
-                    <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <button type="button" class="btn btn-outline-primary w-100">
-                                <i class="bi bi-google"></i> Google
-                            </button>
-                        </div>
-                        <div class="col-6">
-                            <button type="button" class="btn btn-outline-primary w-100">
-                                <i class="bi bi-facebook"></i> Facebook
-                            </button>
-                        </div>
-                    </div>
+<div class="row mb-5">
+    {{#each highestPrice}}
+    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+        <div class="card h-100 shadow-sm border-0">
 
-                    <hr>
+            <!-- <img src="{{this.image}}" class="card-img-top" alt="{{this.title}}" style="height: 200px; object-fit: cover;"> -->
+            <img src="https://picsum.photos/400/300?random={{@index}}"
+                 class="card-img-top"
+                 alt="{{this.title}}"
+                 style="height:200px;object-fit:cover;">
 
-                    <div class="text-center">
-                        <p class="mb-0">
-                            Already have an account? 
-                            <a href="/login" class="text-decoration-none fw-bold">Login now</a>
-                        </p>
-                    </div>
-                </form>
+            <div class="card-body d-flex flex-column">
+                <span class="badge bg-success mb-2 align-self-start">{{this.currentBid}} VND</span>
+                <h5 class="card-title">{{this.title}}</h5>
+
+                <p class="small text-muted flex-grow-1">{{this.description}}</p>
+
+                <a href="/auctions/{{this.id}}" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-eye"></i> View Details
+                </a>
+            </div>
+        </div>
+    </div>
+    {{/each}}
+</div>
+
+<!-- ===== CALL TO ACTION ===== -->
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-light border-0">
+            <div class="card-body text-center p-5">
+                <h3 class="mb-3">Ready to Get Started?</h3>
+                <p class="lead mb-4">Join Vietnam's largest auction community today!</p>
+
+                <a href="/accounts/signup" class="btn btn-primary btn-lg me-2">
+                    <i class="bi bi-person-plus"></i> Sign Up Free
+                </a>
             </div>
         </div>
     </div>

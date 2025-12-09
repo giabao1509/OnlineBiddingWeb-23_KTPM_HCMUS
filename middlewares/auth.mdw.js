@@ -1,6 +1,6 @@
 import axios from "axios";
 import { verifyToken } from '../utils/jwt.js';
-
+import * as categoryService from '../services/category.service.js';
 export async function verifyCaptcha(req, res, next) {
   const token = req.body["g-recaptcha-response"];
 
@@ -69,9 +69,34 @@ export function isAdmin(req, res, next) {
     res.status(403).send('Access denied');
 }
 
-export function attachUserToView(req, res, next) {
-    res.locals.isAuthenticated = !!req.user;
-    res.locals.authUser = req.user || null;
+export async function attachLayoutData(req, res, next) {
+
+    // JWT
+    const token = req.cookies.authToken;
+    if (token) {
+        try {
+            const decoded = verifyToken(token)
+            res.locals.user = decoded;
+        } catch {
+            res.locals.user = null;
+        }
+    } else {
+        res.locals.user = null;
+    }
+
+    try {
+        let categories = await categoryService.getCategories();
+        
+        for (let cat of categories) {
+            const subCats = await categoryService.getSubCategories(cat.id);
+            cat.subCategories = subCats;
+        }
+
+        res.locals.categories = categories;
+    } catch (err) {
+        console.log("Lỗi lấy categories:", err.message);
+        res.locals.categories = [];
+    }
+
     next();
 }
-

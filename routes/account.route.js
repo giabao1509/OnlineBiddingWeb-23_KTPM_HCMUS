@@ -11,7 +11,10 @@ import { OAuth2Client } from 'google-auth-library';
 const router = express.Router();
 
 router.get('/signup', (req, res) => {
-    res.render('Accounts/signup', {RECAPTCHA_SITE_KEY: process.env.RECAPTCHA_SITE_KEY});
+    res.render('Accounts/signup', {
+        RECAPTCHA_SITE_KEY: process.env.RECAPTCHA_SITE_KEY,
+        googleClientId: process.env.GOOGLE_CLIENT_ID
+    });
 });
 
 router.post('/signup', verifyCaptcha, async (req, res) => {
@@ -68,7 +71,7 @@ router.post('/signup', verifyCaptcha, async (req, res) => {
 
     return res.render('Accounts/signup', {
         success: "Account created successfully! You can now log in.",
-        RECAPTCHA_SITE_KEY: process.env.RECAPTCHA_SITE_KEY
+        RECAPTCHA_SITE_KEY: process.env.RECAPTCHA_SITE_KEY,
     });
 });
 
@@ -182,7 +185,13 @@ router.get('/forgotpassword', async (req, res) => {
 
 router.post('/forgotpassword', async (req, res) => { 
     const email = req.body.email;
-
+    
+    const user = await accountService.getAccountByEmail(email);
+    if (!user) {
+        return res.render('Accounts/forgotpassword', {
+            error: 'This email is not registered in our system.'
+        });
+    }
     // Xóa OTP cũ nếu có
     await accountService.deleteOTP(email);
 
