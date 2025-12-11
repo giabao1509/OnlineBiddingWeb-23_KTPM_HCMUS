@@ -5,6 +5,7 @@ import express from 'express';
 import { engine } from 'express-handlebars';
 import expressHandlebarsSections from 'express-handlebars-sections';
 import accountRouter from './routes/account.route.js';
+import productRouter from './routes/product.route.js';
 import {attachLayoutData} from './middlewares/auth.mdw.js';
 import cookieParser from 'cookie-parser';
 
@@ -78,7 +79,7 @@ app.get('/', (req, res) => {
 
 
 app.use('/accounts', accountRouter);
-
+app.use('/products', productRouter);
 
 app.listen(PORT, function () {
   console.log(`Server is running on http://localhost:${PORT}`);
