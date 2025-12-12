@@ -70,12 +70,11 @@ export function isAdmin(req, res, next) {
 }
 
 export async function attachLayoutData(req, res, next) {
-
     // JWT
     const token = req.cookies.authToken;
     if (token) {
         try {
-            const decoded = verifyToken(token)
+            const decoded = verifyToken(token);
             res.locals.user = decoded;
         } catch {
             res.locals.user = null;
@@ -87,16 +86,42 @@ export async function attachLayoutData(req, res, next) {
     try {
         let categories = await categoryService.getCategories();
         
+        // Get the selected category from req.query
+        const selectedCategory = req.query.category || '';
+
         for (let cat of categories) {
             const subCats = await categoryService.getSubCategories(cat.id);
-            cat.subCategories = subCats;
+            cat.subCategories = subCats.map(sub => ({
+                ...sub,
+                selected: sub.id.toString() === selectedCategory
+            }));
+            // Mark the parent category as selected if needed
+            cat.selected = cat.id.toString() === selectedCategory;
         }
 
         res.locals.categories = categories;
+
+        // Sort options
+        const sortOptions = [
+            { value: 'newest', name: 'Newest' },
+            { value: 'ending_soon', name: 'Ending Soon' },
+            { value: 'price_low', name: 'Price: Low → High' },
+            { value: 'price_high', name: 'Price: High → Low' },
+            { value: 'most_bids', name: 'Most Bids' }
+        ];
+        const selectedSort = req.query.sort || 'newest';
+        res.locals.sortOptions = sortOptions.map(opt => ({
+            ...opt,
+            selected: opt.value === selectedSort
+        }));
+
+
     } catch (err) {
-        console.log("Lỗi lấy categories:", err.message);
+        console.log("Error fetching categories:", err.message);
         res.locals.categories = [];
+        res.locals.sortOptions = [];
     }
 
     next();
 }
+

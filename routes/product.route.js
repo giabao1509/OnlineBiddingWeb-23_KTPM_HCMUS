@@ -56,24 +56,35 @@ router.get('/', async (req, res) => {
 
 
 router.get('/search', async (req, res) => {
-    const q = req.query.search || '';
-    const kw = q.replace(/ /g, ' & ');
+    const s = req.query.search || '';
+    const kw = s.replace(/ /g, ' & ');
+    const c = req.query.category || '';
+
 
     const page = parseInt(req.query.page) || 1;
-    const limit = 1;
+    const limit = 2;
     const offset = (page - 1) * limit;
     
     let products;
     let totalProducts;
 
-    if (q !== '') {
-        products  = await productsService.search(kw, limit, offset);
-        totalProducts = await productsService.countSearch(kw);
-    } else {
-        products  = await productsService.getAllProducts(limit, offset);
-        totalProducts = await productsService.countAll();
-    }
-    
+    const sortMap = {
+        newest: { field: 'a.created_at', order: 'desc' },
+        ending_soon: { field: 'a.end_time', order: 'asc' },
+        price_low: { field: 'a.starting_price', order: 'asc' },
+        price_high: { field: 'a.starting_price', order: 'desc' },
+        //most_bids: { field: 'a.bid_count', order: 'desc' }
+    };
+
+    const sortKey = req.query.sort || 'newest';
+    const sortConfig = sortMap[sortKey] || sortMap['newest'];
+    const sortField = sortConfig.field;
+    const sortOrder = sortConfig.order;
+
+    products  = await productsService.searchByCategoryKeywordAndSort(c, kw, limit, offset, sortField, sortOrder)
+    //console.log('products:', products);
+    totalProducts = await productsService.countByCategoryKeyword(c, kw);
+    //console.log('total products:', totalProducts)
 
     const ids = products.map(p => p.auction_id);
 
@@ -83,11 +94,10 @@ router.get('/search', async (req, res) => {
     const imgs = photos.filter(img => img.auction_id === p.auction_id);
     p.photos = imgs;
     p.thumbnail = imgs.find(i => i.is_thumbnail);
-    }
-
+    }    
     
-    const totalPages = Math.ceil(+totalProducts.count / limit);
-    
+    const totalPages = Math.ceil(totalProducts / limit);
+    //console.log('total page:', totalPages)
     const pages = [];
     for (let i = 1; i <= totalPages; i++) {
         pages.push({ number: i, active: i === page });
@@ -102,10 +112,10 @@ router.get('/search', async (req, res) => {
     const queryParams = {
     search: req.query.search || '',
     category: req.query.category || '',
-    sort: req.query.sort || ''
+    sort: req.query.sort || 'newest'
     };
 
-    console.log(queryParams)
+    //console.log(queryParams)
     res.render('Products/all', {
     products,
     query: queryParams,
