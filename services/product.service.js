@@ -1,5 +1,15 @@
 import db from '../utils/db.js';
 
+
+export function getProductsDetailById(id) {
+    return db('auction as a')
+    .join('categories as c', 'c.id', 'a.category_id')
+    .join('user_account as u', 'u.id', 'seller_id')
+    .where('a.auction_id', id)
+    .select('a.*', 'c.cat_name', 'u.full_name as seller_name', 'u.email as seller_email', 'u.address as seller_address')
+    .first()
+}
+
 export function getAllProducts(limit, offset) {
     return db('auction').limit(limit).offset(offset);
 }
@@ -77,4 +87,12 @@ export async function countByCategoryKeyword(category_id, keyword) {
   const result = await query.count('a.auction_id as count').first();
 
   return parseInt(result.count, 10); // trả về số nguyên
+}
+
+
+export function getProductBiddingHistory(auction_id) {
+    return db('auction_bids as ab')
+    .join('user_account as u', 'u.id', 'bidder_id')
+    .select('ab.*', 'u.full_name as bidder_name', 'u.email as bidder_email', 'u.address as bidder_address')
+    .where('auction_id', auction_id);
 }

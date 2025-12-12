@@ -12,3 +12,7 @@ export function getSubCategories(parentId) {
         .select('id', 'cat_name')
         .where('parent_id', parentId);
 }
+
+export function getCategoriesById(id) {
+    return db('categories').where('id', id)
+}

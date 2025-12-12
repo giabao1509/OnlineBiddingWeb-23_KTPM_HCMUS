@@ -1,6 +1,6 @@
 import express from 'express';
 import * as productsService from '../services/product.service.js';
-
+import { maskName } from '../utils/mask.js';
 const router = express.Router();
 
 
@@ -126,6 +126,57 @@ router.get('/search', async (req, res) => {
     isFirstPage,
     isLastPage,
     });
+});
+
+router.get('/detail/:id', async (req, res) => {
+    const auctionID = req.params.id || 0;
+
+    const product = await productsService.getProductsDetailById(auctionID);
+
+    const photos = await productsService.getAllProductsPhotos([auctionID]);
+
+     product.images = photos;
+
+    const biddingHistory = await productsService.getProductBiddingHistory(auctionID);
+
+    product.bidHistory = biddingHistory;
+
+    //Format lại time remaining
+    const now = new Date();
+    const end = new Date(product.end_time);
+    let diffMs = end - now;
+    if (diffMs <= 0) {
+    product.time_remaining = "Đã kết thúc";
+    } else {
+        const diffSec = Math.floor(diffMs / 1000);
+
+        const days = Math.floor(diffSec / (24 * 3600));
+        const hours = Math.floor((diffSec % (24 * 3600)) / 3600);
+        const minutes = Math.floor((diffSec % 3600) / 60);
+        const seconds = diffSec % 60;
+
+        product.time_remaining = 
+            `${days}d ${hours}h ${minutes}m ${seconds}s`;
+    }
+
+    //Mask tên
+    product.bidHistory = biddingHistory.map(b => ({
+    ...b,
+    bidder_name: maskName(b.bidder_name)
+    }));
+
+    //Lấy giá hiện tại của sản phẩm
+    let max = biddingHistory[0];
+    for (let i = 1; i < biddingHistory.length; i++) {
+        if (Number(biddingHistory[i].amount) > Number(max.amount)) {
+            max = biddingHistory[i];
+        }
+    }
+    product.current_bid = max.amount
+
+   
+    console.log(product);
+    res.render('Products/detail', {product})
 });
 
 export default router

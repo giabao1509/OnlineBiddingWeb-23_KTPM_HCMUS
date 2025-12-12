@@ -97,39 +97,50 @@
 
                     <!-- Categories -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle" href="/products/" role="button" data-bs-toggle="dropdown">
                             <i class="bi bi-grid"></i> Categories
                         </a>
                         <ul class="dropdown-menu">
                             {{#if categories}}
                                 {{#each categories}}
-                                <li class="dropdown dropend dropdown-submenu">
-                                    <a class="dropdown-item dropdown-toggle" data-bs-toggle="dropdown" href="/categories/{{this.id}}">
+                                <li class="dropdown dropend dropdown-submenu d-flex align-items-center">
+                                    
+                                    <!-- Link đi trang cấp 1 -->
+                                    <a class="dropdown-item flex-grow-1" href="/products/search?category={{this.id}}">
                                         {{this.cat_name}}
                                     </a>
-                                    
+
+                                    <!-- Nút mở submenu subCategories -->
+                                    {{#if this.subCategories.length}}
+                                    <button class="btn dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
+                                    {{/if}}
+
+                                    <!-- Subcategories -->
+                                    {{#if this.subCategories.length}}
                                     <ul class="dropdown-menu">
                                         {{#each this.subCategories}}
                                         <li>
-                                            <a class="dropdown-item" href="/categories/{{../id}}/{{this.id}}">
+                                            <a class="dropdown-item" href="/products/search?category={{this.id}}">
                                                 {{this.cat_name}}
                                             </a>
                                         </li>
                                         {{/each}}
                                     </ul>
+                                    {{/if}}
                                 </li>
                                 {{/each}}
 
                                 <li><hr class="dropdown-divider"></li>
 
                                 <li>
-                                    <a class="dropdown-item" href="/categories">
+                                    <a class="dropdown-item" href="/products">
                                         <i class="bi bi-grid-3x3"></i> <strong>All Categories</strong>
                                     </a>
                                 </li>
                             {{/if}}
                         </ul>
                     </li>
+
                 </ul>
                 
                 <form class="d-flex me-3" role="search">
