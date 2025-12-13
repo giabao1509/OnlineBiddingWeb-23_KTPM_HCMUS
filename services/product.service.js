@@ -96,3 +96,16 @@ export function getProductBiddingHistory(auction_id) {
     .select('ab.*', 'u.full_name as bidder_name', 'u.email as bidder_email', 'u.address as bidder_address')
     .where('auction_id', auction_id);
 }
+
+
+export function getAllProductComments(id) {
+  return db('comments').where('auction_id', id);
+}
+
+export function countProductComments(id) {
+  return db('comments').where('auction_id', id).count('comment_id as count').first()
+}
+
+export function addProductComments(comment) {
+  return db('comments').insert(comment);
+}

@@ -57,6 +57,7 @@ export function isAuth(req, res, next) {
 
     try {
         req.user = verifyToken(token);
+        //console.log(req.user)
         next();
     } catch(err) {
         res.clearCookie('authToken');
@@ -76,6 +77,8 @@ export async function attachLayoutData(req, res, next) {
         try {
             const decoded = verifyToken(token);
             res.locals.user = decoded;
+            res.locals.isSeller = decoded.role === 1;
+
         } catch {
             res.locals.user = null;
         }

@@ -23,7 +23,8 @@ router.post('/signup', verifyCaptcha, async (req, res) => {
         full_name: req.body.fullName,
         email: req.body.email,
         password: bcrypt.hashSync(req.body.password, 10),
-        created_at: new Date()
+        created_at: new Date(),
+        role: 0
     };
 
     const existingAccount = await accountService.getAccountByEmail(req.body.email);
@@ -163,7 +164,7 @@ router.post('/google-signin', async (req, res) => {
       }
     }
 
-    const jwtToken = generateToken({ userId: user.id, email: user.email, role: user.role },);
+    const jwtToken = generateToken({ id: user.id, email: user.email, role: user.role });
 
     res.cookie('authToken', jwtToken, { httpOnly: true, maxAge: 3600*1000 });
     res.json({ success: true, user });

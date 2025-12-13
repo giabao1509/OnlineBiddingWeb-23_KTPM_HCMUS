@@ -1,6 +1,7 @@
 import express from 'express';
 import * as productsService from '../services/product.service.js';
 import { maskName } from '../utils/mask.js';
+import { isAuth } from '../middlewares/auth.mdw.js';
 const router = express.Router();
 
 
@@ -174,10 +175,46 @@ router.get('/detail/:id', async (req, res) => {
     }
     product.current_bid = max.amount
 
-   
-    console.log(product);
+    const comments = await productsService.getAllProductComments(auctionID)
+
+    const roots = comments.filter(c => c.parent_id === null);
+
+    roots.forEach(c => {
+        c.reply = comments.find(r => r.parent_id === c.comment_id);
+    });
+
+    product.comments = roots
+    const total_comments = await productsService.countProductComments(auctionID)
+    product.total_comments = total_comments.count
+    //console.log(product);
     res.render('Products/detail', {product})
 });
+
+
+
+router.post('/comments/create', isAuth, async (req, res) => {
+    const { auction_id, content, parent_id } = req.body;
+
+
+    if (!content || !content.trim()) {
+        return res.status(400).send('Content is required');
+    }
+
+    const comment = {
+        auction_id: Number(auction_id),
+        content,
+        parent_id: parent_id ? Number(parent_id) : null,
+        user_id: req.user.id
+    }
+
+
+    console.log(comment)
+    await productsService.addProductComments(comment)
+
+    const retUrl = req.headers.referer || '/';
+    res.redirect(retUrl);
+});
+
 
 export default router
 
