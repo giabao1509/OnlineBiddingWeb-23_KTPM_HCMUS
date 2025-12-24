@@ -66,7 +66,12 @@ export function isAuth(req, res, next) {
 }
 
 export function isAdmin(req, res, next) {
-    if (req.user && req.user.role === 'admin') return next();
+    if (req.user && Number(req.user.role) === 2) return next();
+    res.status(403).send('Access denied');
+}
+
+export function isSeller(req, res, next) {
+    if (req.user && Number(req.user.role) === 1) return next();
     res.status(403).send('Access denied');
 }
 
@@ -77,8 +82,10 @@ export async function attachLayoutData(req, res, next) {
         try {
             const decoded = verifyToken(token);
             res.locals.user = decoded;
-            res.locals.isSeller = decoded.role === 1;
-
+            res.locals.isSeller = Number(decoded.role) === 1;
+            res.locals.isAdmin = Number(decoded.role) === 2;
+            res.locals.isBuyer = Number(decoded.role) === 0;
+            //console.log("User data attached to layout:", decoded);
         } catch {
             res.locals.user = null;
         }
@@ -103,7 +110,7 @@ export async function attachLayoutData(req, res, next) {
         }
 
         res.locals.categories = categories;
-
+        //console.log("Categories loaded for layout.", categories);
         // Sort options
         const sortOptions = [
             { value: 'newest', name: 'Newest' },

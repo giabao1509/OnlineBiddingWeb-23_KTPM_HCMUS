@@ -106,7 +106,7 @@
                                 <li class="dropdown dropend dropdown-submenu d-flex align-items-center">
                                     
                                     <!-- Link đi trang cấp 1 -->
-                                    <a class="dropdown-item flex-grow-1" href="/products/search?category={{this.id}}">
+                                    <a class="dropdown-item flex-grow-1" href="/products?category={{this.id}}">
                                         {{this.cat_name}}
                                     </a>
 
@@ -120,7 +120,7 @@
                                     <ul class="dropdown-menu">
                                         {{#each this.subCategories}}
                                         <li>
-                                            <a class="dropdown-item" href="/products/search?category={{this.id}}">
+                                            <a class="dropdown-item" href="/products?category={{this.id}}">
                                                 {{this.cat_name}}
                                             </a>
                                         </li>
@@ -159,22 +159,40 @@
                                 <i class="bi bi-person-circle"></i> {{user.full_name}}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="/dashboard">
-                                    <i class="bi bi-speedometer2"></i> Dashboard
-                                </a></li>
+
+                                {{#if isAdmin}}
+                                    <li><a class="dropdown-item" href="/admin/dashboard">
+                                        <i class="bi bi-speedometer2"></i> Admin Dashboard
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="/admin/users">
+                                        <i class="bi bi-people"></i> Manage Users
+                                    </a></li>
+                                {{else if isSeller}}
+                                    <li><a class="dropdown-item" href="/seller/dashboard">
+                                        <i class="bi bi-speedometer2"></i> Seller Dashboard
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="/my-auctions">
+                                        <i class="bi bi-bag"></i> My Auctions
+                                    </a></li>
+                                {{else}}
+                                    <li><a class="dropdown-item" href="/dashboard">
+                                        <i class="bi bi-speedometer2"></i> Dashboard
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="/my-auctions">
+                                        <i class="bi bi-bag"></i> My Auctions
+                                    </a></li>
+                                {{/if}}
+
                                 <li><a class="dropdown-item" href="/accounts/profile">
                                     <i class="bi bi-person"></i> Profile
                                 </a></li>
-                                <li><a class="dropdown-item" href="/my-auctions">
-                                    <i class="bi bi-bag"></i> My Auctions
-                                </a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                <form id="logoutForm" action="/accounts/signout" method="POST">
-                                    <button type="submit" class="dropdown-item">
-                                        <i class="bi bi-box-arrow-right"></i> Logout
-                                    </button>
-                                </form>
+                                    <form id="logoutForm" action="/accounts/signout" method="POST">
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="bi bi-box-arrow-right"></i> Logout
+                                        </button>
+                                    </form>
                                 </li>
                             </ul>
                         </li>

@@ -2,9 +2,9 @@
 <div class="row mb-4">
     <div class="col-12">
         <h3 class="mb-0">
-            <i class="bi bi-plus-circle text-primary me-2"></i>Đăng sản phẩm đấu giá
+            <i class="bi bi-plus-circle text-primary me-2"></i>Create Auction Product
         </h3>
-        <p class="text-muted">Điền đầy đủ thông tin để đăng sản phẩm</p>
+        <p class="text-muted">Fill in all required information to list your product</p>
     </div>
 </div>
 
@@ -16,28 +16,30 @@
             <div class="card shadow-sm mb-4 border-0">
                 <div class="card-header bg-white">
                     <h5 class="mb-0">
-                        <i class="bi bi-info-circle text-primary"></i> Thông tin cơ bản
+                        <i class="bi bi-info-circle text-primary"></i> Basic Information
                     </h5>
                 </div>
                 <div class="card-body">
                     <!-- Product Name -->
                     <div class="mb-3">
                         <label class="form-label fw-bold">
-                            Tên sản phẩm <span class="text-danger">*</span>
+                            Product Name <span class="text-danger">*</span>
                         </label>
                         <input type="text" class="form-control" name="title" required 
-                               placeholder="VD: iPhone 15 Pro Max 256GB - Chính hãng VN/A">
-                        <small class="text-muted">Tên rõ ràng, đầy đủ giúp sản phẩm được chú ý hơn</small>
+                               placeholder="e.g. iPhone 15 Pro Max 256GB - Official VN/A">
+                        <small class="text-muted">
+                            A clear and detailed title helps attract more buyers
+                        </small>
                     </div>
 
                     <!-- Category -->
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label fw-bold">
-                                Danh mục cha <span class="text-danger">*</span>
+                                Parent Category <span class="text-danger">*</span>
                             </label>
                             <select class="form-select" name="parentCategory" id="parentCategory" required>
-                              <option value="">-- Chọn cha --</option>
+                              <option value="">-- Select Parent --</option>
                               {{#each categories}}
                                 <option value="{{id}}">{{cat_name}}</option>
                               {{/each}}
@@ -45,27 +47,12 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">
-                                Danh mục con <span class="text-danger">*</span>
+                                Subcategory <span class="text-danger">*</span>
                             </label>
                             <select class="form-select" name="subCategory" id="subCategory" required>
-                              <option value="">-- Chọn con --</option>
+                              <option value="">-- Select Subcategory --</option>
                             </select>
                         </div>
-                    </div>
-
-                    <!-- Condition -->
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">
-                            Tình trạng <span class="text-danger">*</span>
-                        </label>
-                        <select class="form-select" name="condition" required>
-                            <option value="">-- Chọn tình trạng --</option>
-                            <option value="new">Mới 100%</option>
-                            <option value="like-new">Như mới (99%)</option>
-                            <option value="used-good">Đã sử dụng - Tốt</option>
-                            <option value="used-fair">Đã sử dụng - Khá</option>
-                            <option value="used-poor">Đã sử dụng - Trung bình</option>
-                        </select>
                     </div>
                 </div>
             </div>
@@ -74,25 +61,26 @@
             <div class="card shadow-sm mb-4 border-0">
                 <div class="card-header bg-white">
                     <h5 class="mb-0">
-                        <i class="bi bi-images text-success"></i> Hình ảnh sản phẩm
+                        <i class="bi bi-images text-success"></i> Product Images
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="alert alert-info py-2 px-3 mb-3">
                         <i class="bi bi-info-circle"></i>
-                        <small>Yêu cầu tối thiểu 3 ảnh. Ảnh đầu tiên sẽ là ảnh đại diện.</small>
+                        <small>
+                            At least 3 images are required. The first image will be used as the thumbnail.
+                        </small>
                     </div>
 
                     <input type="file" class="form-control mb-3" name="images" id="imageInput" 
                            accept="image/*" multiple required>
                     
                     <!-- Image Preview -->
-                    <div id="imagePreview" class="row g-2">
-                        <!-- Preview will be added here -->
-                    </div>
+                    <div id="imagePreview" class="row g-2"></div>
                     
                     <small class="text-muted d-block mt-2">
-                        <i class="bi bi-check-circle text-success"></i> Đã tải: <span id="imageCount">0</span>/10 ảnh
+                        <i class="bi bi-check-circle text-success"></i>
+                        Uploaded: <span id="imageCount">0</span>/10 images
                     </small>
                 </div>
             </div>
@@ -101,17 +89,14 @@
             <div class="card shadow-sm mb-4 border-0">
                 <div class="card-header bg-white">
                     <h5 class="mb-0">
-                        <i class="bi bi-file-text text-warning"></i> Mô tả sản phẩm
+                        <i class="bi bi-file-text text-warning"></i> Product Description
                     </h5>
                 </div>
                 <div class="card-body">
-                    <!-- Rich Text Editor Placeholder -->
-                    <div id="editor" style="min-height: 300px; border: 1px solid #dee2e6; border-radius: 0.25rem;">
-                        <!-- Quill/TinyMCE editor will be initialized here -->
-                    </div>
+                    <div id="editor" style="min-height: 300px; border: 1px solid #dee2e6; border-radius: 0.25rem;"></div>
                     <input type="hidden" name="description" id="descriptionInput">
                     <small class="text-muted d-block mt-2">
-                        Mô tả chi tiết giúp người mua hiểu rõ hơn về sản phẩm
+                        A detailed description helps buyers better understand your product
                     </small>
                 </div>
             </div>
@@ -123,46 +108,50 @@
             <div class="card shadow-sm mb-4 border-0">
                 <div class="card-header text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                     <h5 class="mb-0">
-                        <i class="bi bi-currency-dollar"></i> Giá & Thời gian
+                        <i class="bi bi-currency-dollar"></i> Pricing & Duration
                     </h5>
                 </div>
                 <div class="card-body">
                     <!-- Start Price -->
                     <div class="mb-3">
                         <label class="form-label fw-bold">
-                            Giá khởi điểm <span class="text-danger">*</span>
+                            Starting Price <span class="text-danger">*</span>
                         </label>
                         <div class="input-group">
                             <input type="number" class="form-control" name="startPrice" required 
                                    min="0" step="1000" placeholder="0">
-                            <span class="input-group-text">VNĐ</span>
+                            <span class="input-group-text">VND</span>
                         </div>
                     </div>
 
                     <!-- Bid Step -->
                     <div class="mb-3">
                         <label class="form-label fw-bold">
-                            Bước giá <span class="text-danger">*</span>
+                            Bid Increment <span class="text-danger">*</span>
                         </label>
                         <div class="input-group">
                             <input type="number" class="form-control" name="bidStep" required 
                                    min="1000" step="1000" placeholder="100000">
-                            <span class="input-group-text">VNĐ</span>
+                            <span class="input-group-text">VND</span>
                         </div>
-                        <small class="text-muted">Mỗi lần đặt giá sẽ tăng thêm số tiền này</small>
+                        <small class="text-muted">
+                            Each bid must increase by this amount
+                        </small>
                     </div>
 
                     <!-- Buy Now Price -->
                     <div class="mb-3">
                         <label class="form-label fw-bold">
-                            Giá mua ngay <small class="text-muted">(Tùy chọn)</small>
+                            Buy Now Price <small class="text-muted">(Optional)</small>
                         </label>
                         <div class="input-group">
                             <input type="number" class="form-control" name="buyNowPrice" 
                                    min="0" step="1000" placeholder="0">
-                            <span class="input-group-text">VNĐ</span>
+                            <span class="input-group-text">VND</span>
                         </div>
-                        <small class="text-muted">Người mua có thể mua ngay với giá này</small>
+                        <small class="text-muted">
+                            Buyers can instantly purchase at this price
+                        </small>
                     </div>
 
                     <hr>
@@ -170,15 +159,15 @@
                     <!-- Auction Duration -->
                     <div class="mb-3">
                         <label class="form-label fw-bold">
-                            Thời gian đấu giá <span class="text-danger">*</span>
+                            Auction Duration <span class="text-danger">*</span>
                         </label>
                         <select class="form-select" name="duration" required>
-                            <option value="">-- Chọn thời gian --</option>
-                            <option value="3">3 ngày</option>
-                            <option value="5">5 ngày</option>
-                            <option value="7">7 ngày (Đề xuất)</option>
-                            <option value="10">10 ngày</option>
-                            <option value="14">14 ngày</option>
+                            <option value="">-- Select Duration --</option>
+                            <option value="3">3 days</option>
+                            <option value="5">5 days</option>
+                            <option value="7">7 days (Recommended)</option>
+                            <option value="10">10 days</option>
+                            <option value="14">14 days</option>
                         </select>
                     </div>
 
@@ -186,11 +175,11 @@
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" name="autoExtend" id="autoExtend" checked>
                         <label class="form-check-label" for="autoExtend">
-                            <strong>Tự động gia hạn</strong>
+                            <strong>Auto Extend</strong>
                         </label>
                     </div>
                     <small class="text-muted">
-                        Khi có người đặt giá trong 5 phút cuối, tự động gia hạn thêm 10 phút
+                        Automatically extend by 10 minutes if a bid is placed within the last 5 minutes
                     </small>
                 </div>
             </div>
@@ -198,15 +187,16 @@
             <!-- Submit Buttons -->
             <div class="d-grid gap-2">
                 <button type="submit" class="btn btn-primary btn-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
-                    <i class="bi bi-upload"></i> Đăng sản phẩm
+                    <i class="bi bi-upload"></i> Publish Auction
                 </button>
                 <button type="button" class="btn btn-outline-secondary" onclick="history.back()">
-                    <i class="bi bi-x-circle"></i> Hủy
+                    <i class="bi bi-x-circle"></i> Cancel
                 </button>
             </div>
         </div>
     </div>
 </form>
+
 {{#section 'css'}}
 <!-- Include Quill CSS & JS -->
 <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
@@ -263,7 +253,7 @@
     // Initialize Quill Editor
     var quill = new Quill('#editor', {
         theme: 'snow',
-        placeholder: 'Nhập mô tả chi tiết về sản phẩm...',
+        placeholder: 'Enter a detailed description of the product...',
         modules: {
             toolbar: [
                 [{ 'header': [1, 2, 3, false] }],
@@ -278,6 +268,7 @@
 
     // Form submit - get Quill content
     document.getElementById('productForm').addEventListener('submit', function(e) {
+        syncFileInput();
         const description = quill.root.innerHTML;
         document.getElementById('descriptionInput').value = description;
     });
@@ -286,53 +277,46 @@
     const imageInput = document.getElementById('imageInput');
     const imagePreview = document.getElementById('imagePreview');
     const imageCount = document.getElementById('imageCount');
+
     let selectedFiles = [];
 
-    imageInput.addEventListener('change', function(e) {
+    imageInput.addEventListener('change', function (e) {
         const files = Array.from(e.target.files);
-        
+
         if (selectedFiles.length + files.length > 10) {
             alert('Chỉ được tải tối đa 10 ảnh!');
+            imageInput.value = '';
             return;
         }
 
-        files.forEach((file, index) => {
-            selectedFiles.push(file);
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                const col = document.createElement('div');
-                col.className = 'col-md-4 col-6 image-preview-item';
-                
-                col.innerHTML = `
-                    <img src="${e.target.result}" class="shadow-sm">
-                    ${selectedFiles.length === 1 ? '<span class="main-badge">Ảnh chính</span>' : ''}
-                    <button type="button" class="remove-btn" onclick="removeImage(${selectedFiles.length - 1})">
-                        <i class="bi bi-x"></i>
-                    </button>
-                `;
-                
-                imagePreview.appendChild(col);
-                updateImageCount();
-            };
-            
-            reader.readAsDataURL(file);
-        });
+        files.forEach(file => selectedFiles.push(file));
+
+        syncFileInput();
+        renderImagePreview();
     });
 
     function removeImage(index) {
         selectedFiles.splice(index, 1);
+        syncFileInput();
         renderImagePreview();
+    }
+
+    function syncFileInput() {
+        const dt = new DataTransfer();
+        selectedFiles.forEach(file => dt.items.add(file));
+        imageInput.files = dt.files;
     }
 
     function renderImagePreview() {
         imagePreview.innerHTML = '';
+
         selectedFiles.forEach((file, index) => {
             const reader = new FileReader();
-            reader.onload = function(e) {
+
+            reader.onload = function (e) {
                 const col = document.createElement('div');
                 col.className = 'col-md-4 col-6 image-preview-item';
-                
+
                 col.innerHTML = `
                     <img src="${e.target.result}" class="shadow-sm">
                     ${index === 0 ? '<span class="main-badge">Ảnh chính</span>' : ''}
@@ -340,17 +324,19 @@
                         <i class="bi bi-x"></i>
                     </button>
                 `;
-                
+
                 imagePreview.appendChild(col);
             };
+
             reader.readAsDataURL(file);
         });
+
         updateImageCount();
     }
 
     function updateImageCount() {
         imageCount.textContent = selectedFiles.length;
-        
+
         if (selectedFiles.length < 3) {
             imageCount.parentElement.classList.add('text-danger');
             imageCount.parentElement.classList.remove('text-success');
@@ -370,7 +356,7 @@
       const parentId = this.value;
 
       // reset sub
-      subSelect.innerHTML = '<option value="">-- Select Subcategory --</option>';
+      subSelect.innerHTML = '<option value="">-- Chọn con --</option>';
 
       if (!parentId) return;
 

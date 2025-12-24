@@ -1,69 +1,211 @@
 {{#section 'css'}}
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+/* Image Carousel Enhancements */
+.carousel-inner {
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f8f9fa;
+}
 
+.carousel-item img {
+    transition: transform 0.3s ease;
+}
+
+.carousel-control-prev,
+.carousel-control-next {
+    width: 50px;
+    height: 50px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,0.5);
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+#auctionCarousel:hover .carousel-control-prev,
+#auctionCarousel:hover .carousel-control-next {
+    opacity: 1;
+}
+
+.carousel-control-prev {
+    left: 15px;
+}
+
+.carousel-control-next {
+    right: 15px;
+}
+
+/* Thumbnail Styles */
+.thumb-img {
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    opacity: 0.6;
+}
+
+.thumb-img:hover {
+    opacity: 1;
+    transform: translateY(-2px);
+}
+
+.thumb-img.active {
+    opacity: 1;
+    border-color: #0d6efd !important;
+    border-width: 3px !important;
+}
+
+/* Card Enhancements */
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.info-card {
+    border-radius: 12px;
+}
+
+.price-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 1.5rem;
+    border-radius: 12px;
+    color: white;
+}
+
+/* Countdown Alert */
+.countdown-alert {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    border: none;
+    color: white;
+    border-radius: 10px;
+}
+
+/* Bid Buttons */
+.btn-bid {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    border: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-bid:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(17, 153, 142, 0.3);
+}
+
+/* Tab Styles */
+.nav-tabs .nav-link {
+    border: none;
+    color: #6c757d;
+    font-weight: 500;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover {
+    border-bottom-color: #dee2e6;
+    color: #495057;
+}
+
+.nav-tabs .nav-link.active {
+    color: #0d6efd;
+    border-bottom-color: #0d6efd;
+    background: transparent;
+}
+
+/* Empty State */
+.empty-state {
+    padding: 3rem 1rem;
+    text-align: center;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    opacity: 0.3;
+    margin-bottom: 1rem;
+}
+
+/* Seller Card */
+.seller-card {
+    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+    border-radius: 12px;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+/* Comment Thread */
+.comment-item {
+    transition: background-color 0.2s ease;
+}
+
+.comment-item:hover {
+    background-color: #f8f9fa;
+}
+
+.reply-box {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-left: 3px solid #0d6efd;
+}
+</style>
 {{/section}}
-
 
 {{#section 'js'}}
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-
+document.addEventListener('DOMContentLoaded', function () {
+    // Carousel & Thumbnails
     const carousel = document.querySelector('#auctionCarousel');
     const thumbs = document.querySelectorAll('#carousel-thumbs .thumb-img');
 
-    if (!carousel || !thumbs.length) return;
+    if (carousel && thumbs.length) {
+        function setActiveThumb(index) {
+            thumbs.forEach((t, i) => {
+                if (i === index) {
+                    t.classList.add('active', 'border-primary', 'border-3');
+                } else {
+                    t.classList.remove('active', 'border-primary', 'border-3');
+                }
+            });
+        }
 
-    function setActiveThumb(index) {
-        thumbs.forEach((t, i) => {
-            t.classList.toggle('border-primary', i === index);
-            t.classList.toggle('border-2', i === index);
+        carousel.addEventListener('slide.bs.carousel', e => {
+            setActiveThumb(e.to);
         });
+
+        thumbs.forEach((thumb, index) => {
+            thumb.addEventListener('click', () => setActiveThumb(index));
+        });
+
+        setActiveThumb(0);
     }
 
-    carousel.addEventListener('slide.bs.carousel', e => {
-        setActiveThumb(e.to);
-    });
-
-    thumbs.forEach((thumb, index) => {
-        thumb.addEventListener('click', () => setActiveThumb(index));
-    });
-
-    setActiveThumb(0);
-});
-</script>
-
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-
+    // Reply Button Toggle
     document.querySelectorAll('.reply-btn').forEach(btn => {
         btn.addEventListener('click', function () {
-
-            // Tìm form reply ngay sau nút
             const form = this.nextElementSibling;
-
-            if (!form || !form.classList.contains('reply-form')) return;
-
-            // Toggle form
-            form.classList.toggle('d-none');
+            if (form && form.classList.contains('reply-form')) {
+                form.classList.toggle('d-none');
+            }
         });
     });
 
+    // Smooth scroll to tabs
+    document.querySelectorAll('a[data-bs-toggle="tab"]').forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function (e) {
+            e.target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+    });
 });
 </script>
-
 {{/section}}
-
 
 <!-- Breadcrumb -->
 <div class="row mb-4">
     <div class="col-12">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
-                <li class="breadcrumb-item"><a href="/auctions">Đấu giá</a></li>
-                <li class="breadcrumb-item"><a href="/products/search?category={{product.category_id}}">{{product.cat_name}}</a></li>
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item"><a href="/products">Auctions</a></li>
+                <li class="breadcrumb-item"><a href="/products?category={{product.category_id}}">{{product.cat_name}}</a></li>
                 <li class="breadcrumb-item active">{{product.name}}</li>
             </ol>
         </nav>
@@ -73,148 +215,147 @@ document.addEventListener('DOMContentLoaded', function () {
 <div class="row">
     <!-- Left Column - Images -->
     <div class="col-lg-7 mb-4">
-    <!-- Carousel lớn -->
-    <div id="auctionCarousel" class="carousel slide mb-2" data-bs-ride="carousel">
-        <div class="carousel-inner">
+        <!-- Main Carousel -->
+        <div id="auctionCarousel" class="carousel slide mb-3 shadow-sm" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                {{#if product.images}}
+                    {{#each product.images}}
+                    <div class="carousel-item {{#if this.is_thumbnail}}active{{/if}}">
+                        <img src="{{this.image_url}}" class="d-block w-100" alt="{{../product.name}}" style="max-height: 500px; object-fit: contain; padding: 20px;">
+                    </div>
+                    {{/each}}
+                {{else}}
+                    <div class="carousel-item active">
+                        <img src="https://picsum.photos/600/400?random=1" class="d-block w-100" alt="Product Image" style="max-height: 500px; object-fit: contain; padding: 20px;">
+                    </div>
+                {{/if}}
+            </div>
+            
+            <button class="carousel-control-prev" type="button" data-bs-target="#auctionCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#auctionCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+
+        <!-- Thumbnails -->
+        <div class="d-flex gap-2 overflow-auto pb-2" id="carousel-thumbs">
             {{#if product.images}}
                 {{#each product.images}}
-                <div class="carousel-item {{#if this.is_thumbnail}}active{{/if}}">
-                    <img src="{{this.image_url}}" class="d-block w-100 rounded" alt="{{../auction.title}}" style="max-height: 500px; object-fit: contain;">
-                </div>
+                <img src="{{this.image_url}}" 
+                     class="img-thumbnail thumb-img {{#if this.is_thumbnail}}active border-primary border-3{{/if}}" 
+                     style="width: 100px; height: 100px; object-fit: cover; flex-shrink: 0;"
+                     data-bs-target="#auctionCarousel" 
+                     data-bs-slide-to="{{@index}}"
+                     alt="Thumbnail {{add @index 1}}">
                 {{/each}}
             {{else}}
-                <div class="carousel-item active">
-                    <img src="https://picsum.photos/600/400?random=1" class="d-block w-100 rounded" alt="Placeholder" style="max-height: 500px; object-fit: contain;">
-                </div>
+                <img src="https://picsum.photos/100/100?random=1" 
+                     class="img-thumbnail thumb-img active border-primary border-3" 
+                     style="width: 100px; height: 100px; object-fit: cover; flex-shrink: 0;"
+                     data-bs-target="#auctionCarousel" 
+                     data-bs-slide-to="0"
+                     alt="Thumbnail">
             {{/if}}
         </div>
     </div>
 
-    <!-- Thumbnails -->
-    <div class="d-flex gap-2 overflow-auto" id="carousel-thumbs">
-        {{#if product.images}}
-            {{#each product.images}}
-            <img src="{{this.image_url}}" 
-                 class="img-thumbnail thumb-img {{#if this.is_thumbnail}}border-primary border-2{{/if}}" 
-                 style="width: 100px; height: 100px; object-fit: cover; cursor: pointer;"
-                 data-bs-target="#auctionCarousel" 
-                 data-bs-slide-to="{{@index}}">
-            {{/each}}
-        {{else}}
-            <img src="https://picsum.photos/100/100?random=1" 
-                 class="img-thumbnail border-primary border-2" 
-                 style="width: 100px; height: 100px; object-fit: cover; cursor: pointer;"
-                 data-bs-target="#auctionCarousel" 
-                 data-bs-slide-to="0">
-        {{/if}}
-    </div>
-    </div>
-
-
     <!-- Right Column - Auction Info -->
     <div class="col-lg-5">
-        <div class="card border-0 shadow-sm mb-3">
-            <div class="card-body">
+        <div class="card border-0 shadow-sm mb-3 info-card">
+            <div class="card-body p-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
-                    <span class="badge bg-primary">{{product.cat_name}}</span>
+                    <span class="badge bg-primary fs-6 px-3 py-2">{{product.cat_name}}</span>
                 </div>
 
-                <h1 class="h3 mb-3">{{product.name}}</h1>
+                <h1 class="h3 mb-4 fw-bold">{{product.name}}</h1>
 
                 <!-- Seller Info -->
-                <div class="d-flex align-items-center p-3 bg-white shadow-sm rounded-3 mb-4">
-                    <!-- Avatar giả -->
-                    <div class="me-3">
-                        <img src="https://i.pravatar.cc/100?u={{product.seller_email}}" 
-                            alt="Avatar"
-                            class="rounded-circle border"
-                            style="width: 60px; height: 60px; object-fit: cover;">
-                    </div>
-
-                    <!-- Thông tin người bán -->
-                    <div class="flex-grow-1">
-                        <h5 class="mb-1 fw-semibold">{{product.seller_name}}</h5>
-
-                        <div class="text-muted small d-flex align-items-center gap-1">
-                            <i class="bi bi-star-fill text-warning"></i> 
-                            <span class="fw-semibold">5.0</span> 
-                            <span>({{auction.seller.reviews}} đánh giá)</span>
+                <div class="seller-card p-3 mb-4">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <img src="https://i.pravatar.cc/100?u={{product.seller_email}}" 
+                                alt="Seller Avatar"
+                                class="rounded-circle border border-2 border-white shadow"
+                                style="width: 60px; height: 60px; object-fit: cover;">
                         </div>
-
-                        <div class="text-dark fw-medium" style="font-size: 0.95rem;">
-                            <i class="bi bi-envelope"></i> {{product.seller_email}}
+                        <div class="flex-grow-1">
+                            <h5 class="mb-1 fw-semibold">{{product.seller_name}}</h5>
+                            <div class="text-muted small d-flex align-items-center gap-1 mb-1">
+                                <i class="bi bi-star-fill text-warning"></i> 
+                                <span class="fw-semibold">5.0</span> 
+                                <span>({{product.seller_reviews}} reviews)</span>
+                            </div>
+                            <div class="text-muted small">
+                                <i class="bi bi-envelope"></i> {{product.seller_email}}
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Countdown Timer -->
-                <div class="alert alert-danger mb-3">
+                <div class="countdown-alert alert mb-3">
                     <div class="d-flex justify-content-between align-items-center">
-                        <span><i class="bi bi-clock-history"></i> Kết thúc sau:</span>
+                        <span><i class="bi bi-clock-history me-2"></i>Ends in:</span>
                         <strong class="fs-5">{{product.time_remaining}}</strong>
                     </div>
                 </div>
 
                 <!-- Price Info -->
                 <div class="card bg-light border-0 mb-3">
-                    <div class="card-body">
+                    <div class="card-body p-3">
                         <div class="row mb-2">
                             <div class="col-6">
-                                <small class="text-muted d-block">Giá khởi điểm</small>
+                                <small class="text-muted d-block mb-1">Starting Price</small>
                                 <span class="text-decoration-line-through">{{product.starting_price}} VNĐ</span>
                             </div>
                             <div class="col-6 text-end">
-                                <small class="text-muted d-block">Bước giá</small>
+                                <small class="text-muted d-block mb-1">Bid Step</small>
                                 <span class="text-primary fw-bold">{{product.bid_step}} VNĐ</span>
                             </div>
                         </div>
                         <hr>
-                        <div class="text-center mb-2">
-                            <small class="text-muted d-block">Giá hiện tại</small>
-                            <h2 class="text-success mb-0">{{product.current_bid}} VNĐ</h2>
+                        <div class="text-center">
+                            <small class="text-muted d-block mb-1">Current Bid</small>
+                            <h2 class="text-success mb-0 fw-bold">{{product.current_bid}} VNĐ</h2>
                         </div>
-                        <!---
-                        <div class="text-center"> 
-                            <span class="badge bg-info">{{auction.bidCount}} lượt đặt giá</span>
-                        </div>
-                        --->
                     </div>
                 </div>
 
                 <!-- Bid Form -->
                 {{#if user}}
-                <form action="/auctions/{{auction.id}}/bid" method="POST" class="mb-3">
+                <form action="/auctions/{{product.auction_id}}/bid" method="POST" class="mb-3">
                     <div class="input-group input-group-lg mb-3">
                         <input type="number" class="form-control" name="bidAmount" 
-                               placeholder="Nhập giá của bạn" 
-                               min="{{auction.minNextBid}}" 
-                               step="{{auction.bidStep}}"
+                               placeholder="Enter your bid" 
+                               min="{{product.min_next_bid}}" 
+                               step="{{product.bid_step}}"
                                required>
                         <span class="input-group-text">VNĐ</span>
                     </div>
-                    <div class="d-grid gap-2 mb-3">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="bi bi-hammer"></i> Đặt giá
-                        </button>
-                        <button type="button" class="btn btn-outline-primary btn-lg">
-                            <i class="bi bi-lightning-fill"></i> Đặt giá nhanh: {{auction.quickBid}} VNĐ
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-bid btn-primary btn-lg">
+                            <i class="bi bi-hammer me-2"></i>Place Bid
                         </button>
                     </div>
                 </form>
                 {{else}}
                 <div class="alert alert-warning mb-3">
-                    <i class="bi bi-exclamation-triangle"></i> 
-                    <a href="/login" class="alert-link">Đăng nhập</a> để tham gia đấu giá
+                    <i class="bi bi-exclamation-triangle me-2"></i> 
+                    <a href="/login" class="alert-link">Login</a> to participate in this auction
                 </div>
                 {{/if}}
 
                 <!-- Action Buttons -->
                 <div class="d-grid gap-2">
                     <button class="btn btn-outline-danger">
-                        <i class="bi bi-heart"></i> Thêm vào yêu thích
+                        <i class="bi bi-heart me-2"></i>Add to Watchlist
                     </button>
                     <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#shareModal">
-                        <i class="bi bi-share"></i> Chia sẻ
+                        <i class="bi bi-share me-2"></i>Share
                     </button>
                 </div>
             </div>
@@ -223,318 +364,231 @@ document.addEventListener('DOMContentLoaded', function () {
 </div>
 
 <!-- Tabs Section -->
-<div class="row mt-4">
+<div class="row mt-5">
     <div class="col-12">
         <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white">
-                <ul class="nav nav-tabs card-header-tabs" role="tablist">
+            <div class="card-header bg-white border-0 pt-3">
+                <ul class="nav nav-tabs card-header-tabs border-0" role="tablist">
                     <li class="nav-item">
                         <a class="nav-link active" data-bs-toggle="tab" href="#description">
-                            <i class="bi bi-file-text"></i> Mô tả
+                            <i class="bi bi-file-text me-2"></i>Description
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" data-bs-toggle="tab" href="#specifications">
-                            <i class="bi bi-list-check"></i> Thông số
+                            <i class="bi bi-list-check me-2"></i>Specifications
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" data-bs-toggle="tab" href="#bidHistory">
-                            <i class="bi bi-clock-history"></i> Lịch sử đấu giá
+                            <i class="bi bi-clock-history me-2"></i>Bid History
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" data-bs-toggle="tab" href="#comments">
-                            <i class="bi bi-chat-dots"></i> Bình luận ({{product.total_comments}})
+                            <i class="bi bi-chat-dots me-2"></i>Comments ({{product.total_comments}})
                         </a>
                     </li>
                 </ul>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 <div class="tab-content">
                     <!-- Description Tab -->
                     <div class="tab-pane fade show active" id="description">
-                        <h5>Mô tả sản phẩm</h5>
-                        <p>{{auction.description}}</p>
-                        
-                        <h6 class="mt-4">Điều kiện sản phẩm</h6>
-                        <p><span class="badge bg-success">{{auction.condition}}</span></p>
-                        
-                        <h6 class="mt-4">Ghi chú</h6>
-                        <ul>
-                            <li>Sản phẩm được kiểm định chất lượng</li>
-                            <li>Hỗ trợ thanh toán COD</li>
-                            <li>Giao hàng toàn quốc</li>
-                            <li>Bảo hành theo chính sách nhà sản xuất</li>
-                        </ul>
+                        {{#if product.description}}
+                        <h5 class="mb-3">Product Description</h5>
+                        <div class="description-content">
+                            {{{product.description}}}
+                        </div>
+
+                        {{else}}
+                        <div class="empty-state">
+                            <i class="bi bi-file-text d-block"></i>
+                            <h5 class="text-muted">No Description Available</h5>
+                            <p class="text-muted">The seller hasn't added a description for this product yet.</p>
+                        </div>
+                        {{/if}}
                     </div>
 
                     <!-- Specifications Tab -->
                     <div class="tab-pane fade" id="specifications">
-                        <h5>Thông số kỹ thuật</h5>
-                        <table class="table table-bordered">
-                            <tbody>
-                                {{#each auction.specifications}}
-                                <tr>
-                                    <th style="width: 30%">{{this.name}}</th>
-                                    <td>{{this.value}}</td>
-                                </tr>
-                                {{else}}
-                                <tr>
-                                    <th style="width: 30%">Thương hiệu</th>
-                                    <td>Apple</td>
-                                </tr>
-                                <tr>
-                                    <th>Model</th>
-                                    <td>iPhone 15 Pro Max</td>
-                                </tr>
-                                <tr>
-                                    <th>Màu sắc</th>
-                                    <td>Titan Tự Nhiên</td>
-                                </tr>
-                                <tr>
-                                    <th>Bộ nhớ</th>
-                                    <td>256GB</td>
-                                </tr>
-                                <tr>
-                                    <th>Tình trạng</th>
-                                    <td>Mới 100% - Chưa kích hoạt</td>
-                                </tr>
-                                <tr>
-                                    <th>Xuất xứ</th>
-                                    <td>Chính hãng VN/A</td>
-                                </tr>
-                                {{/each}}
-                            </tbody>
-                        </table>
+                        {{#if product.specifications}}
+                        <h5 class="mb-3">Technical Specifications</h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <tbody>
+                                    {{#each product.specifications}}
+                                    <tr>
+                                        <th style="width: 30%" class="bg-light">{{this.name}}</th>
+                                        <td>{{this.value}}</td>
+                                    </tr>
+                                    {{/each}}
+                                </tbody>
+                            </table>
+                        </div>
+                        {{else}}
+                        <div class="empty-state">
+                            <i class="bi bi-list-check d-block"></i>
+                            <h5 class="text-muted">No Specifications Available</h5>
+                            <p class="text-muted">Technical specifications haven't been provided for this product.</p>
+                        </div>
+                        {{/if}}
                     </div>
 
                     <!-- Bid History Tab -->
                     <div class="tab-pane fade" id="bidHistory">
-                        <h5 class="mb-3">Lịch sử đấu giá</h5>
+                        <h5 class="mb-3">Bidding History</h5>
+                        {{#if product.bidHistory}}
                         <div class="table-responsive">
                             <table class="table table-hover">
-                                <thead>
+                                <thead class="table-light">
                                     <tr>
-                                        <th>Người đặt</th>
-                                        <th>Giá đặt</th>
-                                        <th>Thời gian</th>
+                                        <th>Bidder</th>
+                                        <th>Bid Amount</th>
+                                        <th>Time</th>
+                                        <th>Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {{#each product.bidHistory}}
                                     <tr>
                                         <td>
-                                            <i class="bi bi-person-circle"></i> {{this.bidder_name}}
+                                            <i class="bi bi-person-circle text-primary me-2"></i>
+                                            <span class="fw-medium">{{this.bidder_name}}</span>
                                         </td>
                                         <td class="fw-bold text-success">{{this.amount}} VNĐ</td>
                                         <td><small class="text-muted">{{this.created_at}}</small></td>
-                                    </tr>
-                                    {{else}}
-                                    <tr>
-                                        <td><i class="bi bi-person-circle"></i> user***123</td>
-                                        <td class="fw-bold text-success">31.200.000 VNĐ</td>
-                                        <td><small class="text-muted">5 phút trước</small></td>
-                                        <td><span class="badge bg-success">Đang dẫn đầu</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><i class="bi bi-person-circle"></i> buyer***456</td>
-                                        <td class="fw-bold">31.000.000 VNĐ</td>
-                                        <td><small class="text-muted">15 phút trước</small></td>
-                                        <td><span class="badge bg-secondary">Đã bị vượt</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><i class="bi bi-person-circle"></i> user***789</td>
-                                        <td class="fw-bold">30.500.000 VNĐ</td>
-                                        <td><small class="text-muted">1 giờ trước</small></td>
-                                        <td><span class="badge bg-secondary">Đã bị vượt</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><i class="bi bi-person-circle"></i> bidder***321</td>
-                                        <td class="fw-bold">30.000.000 VNĐ</td>
-                                        <td><small class="text-muted">2 giờ trước</small></td>
-                                        <td><span class="badge bg-secondary">Đã bị vượt</span></td>
+                                        <td>
+                                            {{#if this.is_winning}}
+                                            <span class="badge bg-success">Leading</span>
+                                            {{else}}
+                                            <span class="badge bg-secondary">Outbid</span>
+                                            {{/if}}
+                                        </td>
                                     </tr>
                                     {{/each}}
                                 </tbody>
                             </table>
                         </div>
+                        {{else}}
+                        <div class="empty-state">
+                            <i class="bi bi-clock-history d-block"></i>
+                            <h5 class="text-muted">No Bids Yet</h5>
+                            <p class="text-muted">Be the first to place a bid on this auction!</p>
+                        </div>
+                        {{/if}}
                     </div>
 
                     <!-- Comments Tab -->
                     <div class="tab-pane fade" id="comments">
-                        <h5 class="mb-3">Bình luận & Câu hỏi</h5>
+                        <h5 class="mb-4">Questions & Comments</h5>
 
-                        {{!-- Form comment gốc --}}
+                        <!-- Comment Form -->
                         {{#if user}}
                         <form method="post" action="/products/comments/create" class="mb-4">
                             <input type="hidden" name="auction_id" value="{{product.auction_id}}">
-                            <textarea 
-                                class="form-control mb-2"
-                                name="content"
-                                rows="3"
-                                placeholder="Để lại câu hỏi hoặc bình luận..."
-                                required></textarea>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-send"></i> Gửi bình luận
-                            </button>
+                            <div class="card border-0 bg-light">
+                                <div class="card-body">
+                                    <textarea 
+                                        class="form-control border-0 mb-3"
+                                        name="content"
+                                        rows="3"
+                                        placeholder="Ask a question or leave a comment..."
+                                        required></textarea>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-send me-2"></i>Post Comment
+                                    </button>
+                                </div>
+                            </div>
                         </form>
                         {{/if}}
 
-                        <!-- Danh sách comment -->
-                        <div class="list-group">
+                        <!-- Comments List -->
+                        {{#if product.comments}}
+                        <div class="list-group list-group-flush">
                             {{#each product.comments}}
-                            <div class="list-group-item">
-
+                            <div class="list-group-item comment-item border-0 border-bottom px-0 py-3">
                                 <div class="d-flex">
-                                    <img src="https://picsum.photos/600/400?random=1" class="rounded-circle me-3"
-                                        style="width:40px;height:40px">
+                                    <img src="https://i.pravatar.cc/100?u={{this.user_email}}" 
+                                         class="rounded-circle me-3"
+                                         style="width:48px; height:48px; object-fit: cover;">
 
                                     <div class="flex-grow-1">
-                                        <div class="d-flex justify-content-between">
-                                            <h6 class="mb-1">{{userName}}</h6>
-                                            <small class="text-muted">{{time}}</small>
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <h6 class="mb-0 fw-semibold">{{this.userName}}</h6>
+                                                <small class="text-muted">{{this.time}}</small>
+                                            </div>
                                         </div>
 
-                                        <p class="mb-1">{{content}}</p>
+                                        <p class="mb-2">{{this.content}}</p>
 
-                                        {{!-- Nút trả lời chỉ hiện cho người bán --}}
                                         {{#if ../user}}
                                         <button 
                                             type="button"
-                                            class="btn btn-sm btn-link reply-btn"
+                                            class="btn btn-sm btn-link text-decoration-none reply-btn p-0"
                                             data-comment-id="{{this.comment_id}}">
-                                            Trả lời
+                                            <i class="bi bi-reply me-1"></i>Reply
                                         </button>
                                         {{/if}}
 
-                                        {{!-- Form trả lời (ẩn) --}}
+                                        <!-- Reply Form -->
                                         {{#if ../user}}
                                         <form method="post"
                                             action="/products/comments/create"
-                                            class="reply-form d-none mt-2"
+                                            class="reply-form d-none mt-3"
                                             data-parent-id="{{this.comment_id}}">
 
                                             <input type="hidden" name="auction_id" value="{{../product.auction_id}}">
                                             <input type="hidden" name="parent_id" value="{{this.comment_id}}">
 
-                                            <textarea class="form-control mb-2"
-                                                    name="content"
-                                                    rows="2"
-                                                    placeholder="Phản hồi người mua..."
-                                                    required></textarea>
-
-                                            <button class="btn btn-sm btn-primary">
-                                                Gửi phản hồi
-                                            </button>
+                                            <div class="card border-0 bg-light">
+                                                <div class="card-body p-3">
+                                                    <textarea class="form-control border-0 mb-2"
+                                                            name="content"
+                                                            rows="2"
+                                                            placeholder="Write your reply..."
+                                                            required></textarea>
+                                                    <button class="btn btn-sm btn-primary">
+                                                        <i class="bi bi-send me-1"></i>Send Reply
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </form>
                                         {{/if}}
 
-                                        {{!-- Reply của người bán --}}
-                                        {{#if reply}}
-                                        <div class="bg-light p-2 rounded mt-2">
-                                            <small class="text-muted d-block mb-1">
-                                                <i class="bi bi-reply"></i> Phản hồi từ người bán:
-                                            </small>
-                                            <small>{{reply.content}}</small>
-                                        </div>
+                                        <!-- Seller's Reply -->
+                                        {{#if this.reply}}
+                                            {{#each this.reply}}
+                                            <div class="reply-box rounded p-3 mt-3">
+                                                <div class="d-flex align-items-start">
+                                                    <i class="bi bi-reply-fill text-primary me-2 mt-1"></i>
+                                                    <div>
+                                                        <small class="text-muted d-block mb-1">
+                                                            <strong>Seller's Response:</strong>
+                                                        </small>
+                                                        <p class="mb-0">{{this.content}}</p>
+                                                        <small class="text-muted">{{this.time}}</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {{/each}}
                                         {{/if}}
-
                                     </div>
                                 </div>
                             </div>
-                            {{else}}
-                            <div class="list-group-item text-muted">
-                                Chưa có bình luận nào.
-                            </div>
                             {{/each}}
                         </div>
-                    </div>
-
+                        {{else}}
+                        <div class="empty-state">
+                            <i class="bi bi-chat-dots d-block"></i>
+                            <h5 class="text-muted">No Comments Yet</h5>
+                            <p class="text-muted">Be the first to ask a question or leave a comment!</p>
+                        </div>
+                        {{/if}}
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<!-- Related Auctions 
-<div class="row mt-5">
-    <div class="col-12">
-        <h3 class="mb-4"><i class="bi bi-grid"></i> Đấu giá liên quan</h3>
-    </div>
-    {{#each relatedAuctions}}
-    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-        <div class="card h-100 shadow-sm border-0">
-            <img src="{{this.image}}" class="card-img-top" alt="{{this.title}}" style="height: 200px; object-fit: cover;">
-            <div class="card-body">
-                <span class="badge bg-primary mb-2">{{this.category}}</span>
-                <h6 class="card-title">{{this.title}}</h6>
-                <div class="d-flex justify-content-between">
-                    <small class="text-muted">Giá hiện tại:</small>
-                    <strong class="text-success">{{this.currentBid}} VNĐ</strong>
-                </div>
-                <a href="/auctions/{{this.id}}" class="btn btn-sm btn-outline-primary w-100 mt-2">Xem</a>
-            </div>
-        </div>
-    </div>
-    {{else}}
-    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-        <div class="card h-100 shadow-sm border-0">
-            <img src="https://via.placeholder.com/300x200?text=Related+1" class="card-img-top" alt="Related" style="height: 200px; object-fit: cover;">
-            <div class="card-body">
-                <span class="badge bg-primary mb-2">Điện tử</span>
-                <h6 class="card-title">Samsung Galaxy S24 Ultra</h6>
-                <div class="d-flex justify-content-between">
-                    <small class="text-muted">Giá hiện tại:</small>
-                    <strong class="text-success">24.000.000 VNĐ</strong>
-                </div>
-                <a href="/auctions/5" class="btn btn-sm btn-outline-primary w-100 mt-2">Xem</a>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-        <div class="card h-100 shadow-sm border-0">
-            <img src="https://via.placeholder.com/300x200?text=Related+2" class="card-img-top" alt="Related" style="height: 200px; object-fit: cover;">
-            <div class="card-body">
-                <span class="badge bg-primary mb-2">Điện tử</span>
-                <h6 class="card-title">iPad Pro M2 11 inch</h6>
-                <div class="d-flex justify-content-between">
-                    <small class="text-muted">Giá hiện tại:</small>
-                    <strong class="text-success">18.500.000 VNĐ</strong>
-                </div>
-                <a href="/auctions/6" class="btn btn-sm btn-outline-primary w-100 mt-2">Xem</a>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-        <div class="card h-100 shadow-sm border-0">
-            <img src="https://via.placeholder.com/300x200?text=Related+3" class="card-img-top" alt="Related" style="height: 200px; object-fit: cover;">
-            <div class="card-body">
-                <span class="badge bg-primary mb-2">Điện tử</span>
-                <h6 class="card-title">MacBook Pro 14 inch M3</h6>
-                <div class="d-flex justify-content-between">
-                    <small class="text-muted">Giá hiện tại:</small>
-                    <strong class="text-success">42.000.000 VNĐ</strong>
-                </div>
-                <a href="/auctions/7" class="btn btn-sm btn-outline-primary w-100 mt-2">Xem</a>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-        <div class="card h-100 shadow-sm border-0">
-            <img src="https://via.placeholder.com/300x200?text=Related+4" class="card-img-top" alt="Related" style="height: 200px; object-fit: cover;">
-            <div class="card-body">
-                <span class="badge bg-primary mb-2">Điện tử</span>
-                <h6 class="card-title">AirPods Pro 2</h6>
-                <div class="d-flex justify-content-between">
-                    <small class="text-muted">Giá hiện tại:</small>
-                    <strong class="text-success">5.200.000 VNĐ</strong>
-                </div>
-                <a href="/auctions/8" class="btn btn-sm btn-outline-primary w-100 mt-2">Xem</a>
-            </div>
-        </div>
-    </div>
-    {{/each}}
-</div>
--->

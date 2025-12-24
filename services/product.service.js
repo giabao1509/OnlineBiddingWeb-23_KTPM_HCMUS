@@ -109,3 +109,11 @@ export function countProductComments(id) {
 export function addProductComments(comment) {
   return db('comments').insert(comment);
 }
+
+export function addProduct(product) {
+  return db('auction').insert(product).returning('auction_id');
+}
+
+export function addProductImages(images) {
+  return db('auction_images').insert(images);
+}

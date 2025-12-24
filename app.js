@@ -1,5 +1,5 @@
-import dotenv from "dotenv";
-dotenv.config();
+import './bootstrap.js'
+
 
 import express from 'express';
 import { engine } from 'express-handlebars';
@@ -8,9 +8,8 @@ import accountRouter from './routes/account.route.js';
 import productRouter from './routes/product.route.js';
 import {attachLayoutData} from './middlewares/auth.mdw.js';
 import cookieParser from 'cookie-parser';
-
-
-
+import sellerRouter from './routes/seller.route.js';
+import buyerRouter from './routes/buyer.route.js';
 const PORT = process.env.PORT || 3000;
 const app = express();
 app.use(express.json());
@@ -22,6 +21,8 @@ app.engine('handlebars', engine({
     format_currency(value) {
       return new Intl.NumberFormat('en-US').format(value);
     },
+
+    add: (a, b) => a + b,
     section: expressHandlebarsSections()
   }
 }));
@@ -76,10 +77,13 @@ app.get('/', (req, res) => {
   });
 });
 
-
-
+app.get('/test', (req, res) => { 
+  res.render('test');
+});
 app.use('/accounts', accountRouter);
 app.use('/products', productRouter);
+app.use('/seller',  sellerRouter);
+app.use('/buyer',  buyerRouter);
 
 app.listen(PORT, function () {
   console.log(`Server is running on http://localhost:${PORT}`);

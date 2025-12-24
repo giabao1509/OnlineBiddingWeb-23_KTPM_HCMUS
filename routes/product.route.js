@@ -5,58 +5,9 @@ import { isAuth } from '../middlewares/auth.mdw.js';
 const router = express.Router();
 
 
+
+
 router.get('/', async (req, res) => {
-
-    
-
-    const page = parseInt(req.query.page) || 1;
-    const limit = 1;
-    const offset = (page - 1) * limit;
-    
-
-    const products = await productsService.getAllProducts(limit, offset);
-
-    const ids = products.map(p => p.auction_id);
-
-    const photos = await productsService.getAllProductsPhotos(ids)
-
-    for (const p of products) {
-    const imgs = photos.filter(img => img.auction_id === p.auction_id);
-    p.photos = imgs;
-    p.thumbnail = imgs.find(i => i.is_thumbnail);
-    }
-
-    const totalProducts = await productsService.countAll();
-    const totalPages = Math.ceil(+totalProducts.count / limit);
-    
-    const pages = [];
-    for (let i = 1; i <= totalPages; i++) {
-        pages.push({ number: i, active: i === page });
-    }
-
-
-    const prevPage = page > 1 ? page - 1 : 1;
-    const nextPage = page < totalPages ? page + 1 : totalPages;
-    const isFirstPage = page === 1;
-    const isLastPage = page === totalPages;
-
-
-    res.render('Products/all',{
-        products,
-        pages,
-        prevPage,
-        nextPage,
-        isFirstPage,
-        isLastPage,
-    }
-       
-    );
-
-
-});
-
-
-router.get('/search', async (req, res) => {
     const s = req.query.search || '';
     const kw = s.replace(/ /g, ' & ');
     const c = req.query.category || '';
@@ -130,65 +81,74 @@ router.get('/search', async (req, res) => {
 });
 
 router.get('/detail/:id', async (req, res) => {
-    const auctionID = req.params.id || 0;
+  const auctionID = Number(req.params.id) || 0;
 
-    const product = await productsService.getProductsDetailById(auctionID);
+  const product = await productsService.getProductsDetailById(auctionID);
+  if (!product) {
+    return res.status(404).render('404');
+  }
 
-    const photos = await productsService.getAllProductsPhotos([auctionID]);
+  /* ========= IMAGES ========= */
+  const photos = await productsService.getAllProductsPhotos([auctionID]);
+  product.images = photos || [];
 
-     product.images = photos;
+  /* ========= BIDDING HISTORY ========= */
+  const biddingHistory = await productsService.getProductBiddingHistory(auctionID);
+  product.bidHistory = biddingHistory || [];
 
-    const biddingHistory = await productsService.getProductBiddingHistory(auctionID);
-
-    product.bidHistory = biddingHistory;
-
-    //Format lại time remaining
-    const now = new Date();
-    const end = new Date(product.end_time);
-    let diffMs = end - now;
-    if (diffMs <= 0) {
-    product.time_remaining = "Đã kết thúc";
-    } else {
-        const diffSec = Math.floor(diffMs / 1000);
-
-        const days = Math.floor(diffSec / (24 * 3600));
-        const hours = Math.floor((diffSec % (24 * 3600)) / 3600);
-        const minutes = Math.floor((diffSec % 3600) / 60);
-        const seconds = diffSec % 60;
-
-        product.time_remaining = 
-            `${days}d ${hours}h ${minutes}m ${seconds}s`;
-    }
-
-    //Mask tên
-    product.bidHistory = biddingHistory.map(b => ({
-    ...b,
-    bidder_name: maskName(b.bidder_name)
+  // Mask tên nếu có history
+  if (product.bidHistory.length > 0) {
+    product.bidHistory = product.bidHistory.map(b => ({
+      ...b,
+      bidder_name: maskName(b.bidder_name)
     }));
 
-    //Lấy giá hiện tại của sản phẩm
-    let max = biddingHistory[0];
-    for (let i = 1; i < biddingHistory.length; i++) {
-        if (Number(biddingHistory[i].amount) > Number(max.amount)) {
-            max = biddingHistory[i];
-        }
+    // Lấy giá hiện tại
+    let max = product.bidHistory[0];
+    for (let i = 1; i < product.bidHistory.length; i++) {
+      if (Number(product.bidHistory[i].amount) > Number(max.amount)) {
+        max = product.bidHistory[i];
+      }
     }
-    product.current_bid = max.amount
+    product.current_bid = max.amount;
+  } else {
+    // Chưa có ai bid
+    product.current_bid = product.starting_price;
+  }
 
-    const comments = await productsService.getAllProductComments(auctionID)
+  /* ========= TIME REMAINING ========= */
+  const now = new Date();
+  const end = new Date(product.end_time);
+  const diffMs = end - now;
 
-    const roots = comments.filter(c => c.parent_id === null);
+  if (diffMs <= 0) {
+    product.time_remaining = "Đã kết thúc";
+  } else {
+    const diffSec = Math.floor(diffMs / 1000);
+    const days = Math.floor(diffSec / (24 * 3600));
+    const hours = Math.floor((diffSec % (24 * 3600)) / 3600);
+    const minutes = Math.floor((diffSec % 3600) / 60);
+    const seconds = diffSec % 60;
 
-    roots.forEach(c => {
-        c.reply = comments.find(r => r.parent_id === c.comment_id);
-    });
+    product.time_remaining = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+  }
 
-    product.comments = roots
-    const total_comments = await productsService.countProductComments(auctionID)
-    product.total_comments = total_comments.count
-    //console.log(product);
-    res.render('Products/detail', {product})
+  /* ========= COMMENTS ========= */
+  const comments = await productsService.getAllProductComments(auctionID) || [];
+
+  const roots = comments.filter(c => c.parent_id === null);
+  roots.forEach(c => {
+    c.reply = comments.filter(r => r.parent_id === c.comment_id);
+  });
+
+  product.comments = roots;
+
+  const total_comments = await productsService.countProductComments(auctionID);
+  product.total_comments = total_comments?.count || 0;
+
+  res.render('Products/detail', { product });
 });
+
 
 
 
@@ -208,7 +168,7 @@ router.post('/comments/create', isAuth, async (req, res) => {
     }
 
 
-    console.log(comment)
+    //console.log(comment)
     await productsService.addProductComments(comment)
 
     const retUrl = req.headers.referer || '/';
