@@ -10,6 +10,7 @@ import {attachLayoutData} from './middlewares/auth.mdw.js';
 import cookieParser from 'cookie-parser';
 import sellerRouter from './routes/seller.route.js';
 import buyerRouter from './routes/buyer.route.js';
+import adminRouter from './routes/admin.route.js';
 const PORT = process.env.PORT || 3000;
 const app = express();
 app.use(express.json());
@@ -21,7 +22,7 @@ app.engine('handlebars', engine({
     format_currency(value) {
       return new Intl.NumberFormat('en-US').format(value);
     },
-
+    gt: (a, b) => Number(a) > b,
     add: (a, b) => a + b,
     section: expressHandlebarsSections()
   }
@@ -78,12 +79,13 @@ app.get('/', (req, res) => {
 });
 
 app.get('/test', (req, res) => { 
-  res.render('test');
+  res.render('Admin/categorymanagement');
 });
 app.use('/accounts', accountRouter);
 app.use('/products', productRouter);
 app.use('/seller',  sellerRouter);
 app.use('/buyer',  buyerRouter);
+app.use('/admin',  adminRouter);
 
 app.listen(PORT, function () {
   console.log(`Server is running on http://localhost:${PORT}`);

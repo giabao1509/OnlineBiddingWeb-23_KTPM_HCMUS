@@ -1,6 +1,5 @@
 import express from 'express';
 import * as productsService from '../services/product.service.js';
-import { maskName } from '../utils/mask.js';
 import { isAuth, isSeller } from '../middlewares/auth.mdw.js';
 import upload from '../utils/upload.js';
 const router = express.Router();

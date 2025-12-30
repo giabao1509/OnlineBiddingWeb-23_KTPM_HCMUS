@@ -1,10 +1,11 @@
+import { create } from 'express-handlebars';
 import jwt from 'jsonwebtoken';
 
 
 // Tạo token
 export function generateToken(user) {
     return jwt.sign(
-        { id: user.id, email: user.email, role: user.role },
+        { id: user.id, full_name: user.full_name, email: user.email, role: user.role, created_at: user.created_at},
         process.env.JWT_SECRET,
         { expiresIn: '1h' }
     );
