@@ -11,8 +11,20 @@ import cookieParser from 'cookie-parser';
 import sellerRouter from './routes/seller.route.js';
 import buyerRouter from './routes/buyer.route.js';
 import adminRouter from './routes/admin.route.js';
+import session from 'express-session';
+import flash from 'connect-flash';
+
+
 const PORT = process.env.PORT || 3000;
 const app = express();
+
+app.use(session({
+  secret: process.env.SESSION_SECRET_KEY,
+  resave: false,
+  saveUninitialized: false
+}));
+
+app.use(flash());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());

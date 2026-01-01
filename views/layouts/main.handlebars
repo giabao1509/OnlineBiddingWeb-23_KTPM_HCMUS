@@ -213,37 +213,43 @@
         </div>
     </nav>
 
-    <!-- Flash Messages -->
     {{#if messages}}
-    <div class="container mt-3">
-        {{#if messages.success}}
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle-fill"></i> {{messages.success}}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        {{/if}}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+    {{#if messages.success}}
+        Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: '{{messages.success}}',
+        timer: 2500,
+        showConfirmButton: false
+        });
+    {{/if}}
 
-        {{#if messages.error}}
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle-fill"></i> {{messages.error}}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        {{/if}}
+    {{#if messages.error}}
+        Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: '{{messages.error}}'
+        });
+    {{/if}}
 
-        {{#if messages.warning}}
-            <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-circle-fill"></i> {{messages.warning}}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        {{/if}}
+    {{#if messages.warning}}
+        Swal.fire({
+        icon: 'warning',
+        title: 'Warning',
+        text: '{{messages.warning}}'
+        });
+    {{/if}}
 
-        {{#if messages.info}}
-            <div class="alert alert-info alert-dismissible fade show" role="alert">
-                <i class="bi bi-info-circle-fill"></i> {{messages.info}}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        {{/if}}
-    </div>
+    {{#if messages.info}}
+        Swal.fire({
+        icon: 'info',
+        title: 'Info',
+        text: '{{messages.info}}'
+        });
+    {{/if}}
+    </script>
     {{/if}}
 
     <!-- Main Content -->

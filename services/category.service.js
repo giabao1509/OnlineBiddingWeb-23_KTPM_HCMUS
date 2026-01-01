@@ -35,7 +35,7 @@ export function getCategoriesById(id) {
 //         ELSE c.id
 //     END
 // GROUP BY c.id, c.cat_name, c.parent_id, p.cat_name
-export function getAllCategoriesWithProductCount() {
+export function getAllCategoriesWithProductCount(limit, offset) {
     return db('categories as c')
         .leftJoin('categories as p', 'c.parent_id', 'p.id')
         .leftJoin('categories as c_child', 'c_child.parent_id', 'c.id')
@@ -51,7 +51,9 @@ export function getAllCategoriesWithProductCount() {
             'c.parent_id',
             'p.cat_name AS parent_name',
             db.raw('COUNT(a.auction_id) AS product_count')
-        );
+        )
+        .limit(limit)
+        .offset(offset);
 
 }
 
@@ -69,4 +71,10 @@ export function deleteCategory(categoryId) {
     return db('categories')
         .where('id', categoryId)
         .del();
+}
+
+export function countAllCategories() {
+    return db('categories')
+        .count('id as count')
+        .first();
 }

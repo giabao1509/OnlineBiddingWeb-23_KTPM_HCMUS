@@ -183,9 +183,9 @@
                 
                 
                 
-                <a href="/admin/customers" class="menu-item">
+                <a href="/admin/users" class="menu-item">
                     <i class="bi bi-people"></i>
-                    <span>Customers</span>
+                    <span>Users</span>
                 </a>
                 
             </div>
@@ -198,6 +198,14 @@
                 <div>
                     <h1 class="h4 mb-1">Auction Management</h1>
                 </div>
+
+                 <button
+                    class="btn btn-outline-primary"
+                    data-bs-toggle="modal"
+                    data-bs-target="#autoExtendConfigModal">
+                    <i class="bi bi-clock-history"></i>
+                    Auto Extend Settings
+                </button>
             </div>
 
             <!-- Auctions Table -->
@@ -336,6 +344,88 @@
 
                         <button type="submit" class="btn btn-danger">
                             Delete
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Auto Extend Config Modal -->
+    <div class="modal fade" id="autoExtendConfigModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <form method="POST" action="/admin/auction/set_auto_extend">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bi bi-clock"></i> Auto Extend Configuration
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <!-- Enable / Disable -->
+                        <div class="form-check form-switch mb-3">
+                            <input
+                                class="form-check-input"
+                                type="checkbox"
+                                name="is_auto_extend"
+                                id="isAutoExtend"
+                                {{#if autoExtend.is_auto_extend}}checked{{/if}}>
+                            <label class="form-check-label" for="isAutoExtend">
+                                Enable auto extend for all auctions
+                            </label>
+                        </div>
+
+                        <!-- Threshold -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Extend when bid placed within (minutes)
+                            </label>
+                            <input
+                                type="number"
+                                class="form-control"
+                                name="extend_threshold_minutes"
+                                min="1"
+                                required
+                                value="{{autoExtend.extend_threshold_minutes}}">
+                        </div>
+
+                        <!-- Duration -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Extend auction by (minutes)
+                            </label>
+                            <input
+                                type="number"
+                                class="form-control"
+                                name="extend_duration_minutes"
+                                min="1"
+                                required
+                                value="{{autoExtend.extend_duration_minutes}}">
+                        </div>
+
+                        <div class="alert alert-info mb-0">
+                            <small>
+                                If a new bid is placed within the last
+                                <strong>X</strong> minutes, the auction will be extended
+                                by <strong>Y</strong> minutes.
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+
+                        <button type="submit" class="btn btn-primary">
+                            Save Configuration
                         </button>
                     </div>
                 </form>

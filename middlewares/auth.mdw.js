@@ -132,6 +132,8 @@ export async function attachLayoutData(req, res, next) {
         res.locals.sortOptions = [];
     }
 
+    res.locals.messages = req.flash();
+
     next();
 }
 

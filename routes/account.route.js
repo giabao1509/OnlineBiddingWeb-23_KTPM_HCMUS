@@ -93,7 +93,7 @@ router.post('/send-otp', async (req, res) => {
 
   await accountService.addOTP(otp)
 
-  sendOTPEmail(email, otp_code);
+  await sendOTPEmail(email, otp_code);
 
   res.json({ success: true, message: "OTP sent!" });
 });
@@ -124,7 +124,9 @@ router.post('/signin', async (req, res) => {
 
     const token = generateToken(user);
     res.cookie('authToken', token, { httpOnly: true, maxAge: 3600*1000 });
-    res.redirect('/accounts/dashboard');
+
+    req.flash('success', 'Signin successfully.');
+    res.redirect('/');
 });
 
 
@@ -168,11 +170,17 @@ router.post('/google-signin', async (req, res) => {
     const jwtToken = generateToken(user);
 
     res.cookie('authToken', jwtToken, { httpOnly: true, maxAge: 3600*1000 });
-    res.json({ success: true, user });
+    req.flash('success', 'Signin successfully.');
+    res.json({ success: true });
+    // res.redirect('/');
 
   } catch (err) {
-    console.error(err);
-    res.status(401).json({ message: 'Invalid Google token' });
+    //console.error(err);
+    //res.status(401).json({ message: 'Invalid Google token' });
+    res.render('Accounts/signin', { 
+        error: 'Google sign-in failed. Please try again.',
+        RECAPTCHA_SITE_KEY: process.env.RECAPTCHA_SITE_KEY
+    });
   }
 });
 
@@ -187,12 +195,16 @@ router.get('/forgotpassword', async (req, res) => {
 
 router.post('/forgotpassword', async (req, res) => { 
     const email = req.body.email;
-    
     const user = await accountService.getAccountByEmail(email);
+    
     if (!user) {
-        return res.render('Accounts/forgotpassword', {
-            error: 'This email is not registered in our system.'
-        });
+        req.flash('error', 'This email is not registered in our system.');
+        return res.redirect('/accounts/forgotpassword');
+    }
+
+    if (user.googleId) {
+        req.flash('error', 'Password reset is not available for Google-linked accounts. Please sign in with Google.');
+        return res.redirect('/accounts/forgotpassword');
     }
     // Xóa OTP cũ nếu có
     await accountService.deleteOTP(email);
@@ -206,8 +218,8 @@ router.post('/forgotpassword', async (req, res) => {
     };
     await accountService.addOTP(otp);
 
-    
-    sendOTPEmail(email, otp_code);
+
+    await sendOTPEmail(email, otp_code);
 
     
     const token = generateOTPToken(email);
