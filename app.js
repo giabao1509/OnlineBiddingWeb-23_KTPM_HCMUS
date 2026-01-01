@@ -24,6 +24,7 @@ app.engine('handlebars', engine({
     },
     gt: (a, b) => Number(a) > b,
     add: (a, b) => a + b,
+    eq: (a, b) => a === b,
     section: expressHandlebarsSections()
   }
 }));

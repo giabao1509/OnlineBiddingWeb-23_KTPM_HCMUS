@@ -2,8 +2,8 @@ import express from 'express';
 const router = express.Router();
 import { isAuth, isAdmin } from '../middlewares/auth.mdw.js';
 import * as categoryService from '../services/category.service.js';
-
-
+import * as productsService from '../services/product.service.js';
+import { deleteImageByPublicId } from '../utils/cloudinary.js';
 
 router.get('/category', isAuth, isAdmin, async (req, res) => {
     const admincategories = await categoryService.getAllCategoriesWithProductCount();
@@ -41,6 +41,49 @@ router.post('/category/delete', isAuth, isAdmin, async (req, res) => {
     const { id } = req.body;
     await categoryService.deleteCategory(id);
     res.redirect('/admin/category');
+});
+
+
+router.get('/auction', isAuth, isAdmin, async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 3;
+    const offset = (page - 1) * limit;
+    const totalAuction = await productsService.countAll();
+    //console.log(totalAuction);
+    const totalPages = Math.ceil(Number(totalAuction.count) / limit);
+    const prevPage = page > 1 ? page - 1 : 1;
+    const nextPage = page < totalPages ? page + 1 : totalPages;
+    const isFirstPage = page === 1;
+    const isLastPage = page === totalPages;
+    
+    const pages = [];
+    for (let i = 1; i <= totalPages; i++) {
+        pages.push({ number: i, active: i === page });
+    }
+    //console.log(totalPages)
+    //console.log(pages);
+
+    const auctions = await productsService.getAllAuctionsForAdmin(limit, offset);
+    res.render('Admin/auctionmanagement', { 
+        auctions: auctions, 
+        prevPage,
+        nextPage,
+        isFirstPage,
+        isLastPage,
+        pages
+    });
+});
+
+
+router.post('/auction/delete', isAuth, isAdmin, async (req, res) => {
+    const { id } = req.body;
+    const auctionImages = await productsService.getAllProductsPhotos([id]);
+    for (const image of auctionImages) {
+        await deleteImageByPublicId(image.public_id);
+    }
+
+    await productsService.deleteAuctionById(id);
+    res.redirect('/admin/auction');
 });
 
 export default router;

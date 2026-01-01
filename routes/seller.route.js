@@ -8,7 +8,7 @@ router.get('/dashboard', isAuth, isSeller, async (req, res) => {
     res.render('Seller/dashboard');
 });
 
-router.get('/create_product', async (req, res) => {
+router.get('/create_product', isAuth, isSeller, async (req, res) => {
     try {
         res.render('Seller/createproduct', {
             categoriesJson: JSON.stringify(res.locals.categories),
@@ -20,7 +20,7 @@ router.get('/create_product', async (req, res) => {
     }
 });
 
-router.post('/create_product', isAuth, upload.array('images', 10), async (req, res) => {
+router.post('/create_product', isAuth, isSeller, upload.array('images', 10), async (req, res) => {
     try {
         const {
             title,
@@ -43,7 +43,7 @@ router.post('/create_product', isAuth, upload.array('images', 10), async (req, r
             starting_price: Number(startPrice),
             buy_now_price: buyNowPrice ? Number(buyNowPrice) : null,
             bid_step: Number(bidStep),
-            auto_extend: autoExtend === 'on',   
+            //auto_extend: autoExtend === 'on',   
             end_time: new Date(
                 Date.now() + Number(duration) * 24 * 60 * 60 * 1000
             )
@@ -51,24 +51,18 @@ router.post('/create_product', isAuth, upload.array('images', 10), async (req, r
         //console.log(newProducts);
         const auctionId = await productsService.addProduct(newAuction);
 
-        console.log('New auction ID:', auctionId[0].auction_id);
+        //console.log('New auction ID:', auctionId[0].auction_id);
         //console.log(req.files);
         // ===== 2. XỬ LÝ ẢNH =====
         const images = req.files.map((file, index) => ({
             auction_id: auctionId[0].auction_id,
             image_url: file.url,
-            is_thumbnail: index === 0
+            is_thumbnail: index === 0,
+            public_id: file.public_id
         }));
         console.log(images);
 
         await productsService.addProductImages(images);
-
-        //console.log(images);
-
-        //await auctionService.insertAuctionImages(images);
-
-        // ===== 3. REDIRECT =====
-        //res.redirect(`/auctions/${auctionId}`);
         res.render('Seller/createproduct', {
             categoriesJson: JSON.stringify(res.locals.categories),
             success: 'Product created successfully!'

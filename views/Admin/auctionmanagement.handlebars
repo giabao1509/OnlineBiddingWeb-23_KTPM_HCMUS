@@ -153,9 +153,9 @@
             ).show();
         }
 
-        function setDeleteCategory(id, name) {
-        document.getElementById('deleteCategoryId').value = id;
-        document.getElementById('deleteCategoryName').innerText = name;
+        function setDeleteAuction(id, name) {
+        document.getElementById('deleteAuctionId').value = id;
+        document.getElementById('deleteAuctionName').innerText = name;
         }
     </script>
 {{/section}}
@@ -170,35 +170,24 @@
             </div>
             
             <div class="sidebar-menu">
-                <a href="/admin" class="menu-item">
-                    <i class="bi bi-house"></i>
-                    <span>Dashboard</span>
-                </a>
-                
-                <a href="/admin/products" class="menu-item">
-                    <i class="bi bi-box"></i>
-                    <span>Products</span>
-                </a>
-                
-                <a href="/admin/categories" class="menu-item active">
+
+                <a href="/admin/category" class="menu-item">
                     <i class="bi bi-grid"></i>
                     <span>Categories</span>
                 </a>
                 
-                <a href="/admin/orders" class="menu-item">
-                    <i class="bi bi-cart"></i>
-                    <span>Orders</span>
+                <a href="/admin/auction" class="menu-item active">
+                    <i class="bi bi-box"></i>
+                    <span>Auctions</span>
                 </a>
+                
+                
                 
                 <a href="/admin/customers" class="menu-item">
                     <i class="bi bi-people"></i>
                     <span>Customers</span>
                 </a>
                 
-                <a href="/admin/settings" class="menu-item">
-                    <i class="bi bi-gear"></i>
-                    <span>Settings</span>
-                </a>
             </div>
         </div>
         
@@ -207,19 +196,15 @@
             <!-- Page Header -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h1 class="h4 mb-1">Category Management</h1>
+                    <h1 class="h4 mb-1">Auction Management</h1>
                 </div>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
-                    <i class="bi bi-plus-circle"></i> Add Category
-                </button>
             </div>
 
-            <!-- Categories Table -->
+            <!-- Auctions Table -->
             <div class="card">
                 <div class="card-header bg-white py-3">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="m-0">Category List</h6>
-                        <span class="text-muted">Total: <strong id="totalCategories">8</strong></span>
+                        <h6 class="m-0">Auction List</h6>
                     </div>
                 </div>
                 <div class="card-body p-0">
@@ -227,57 +212,59 @@
                         <table class="table table-hover mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Category Name</th>
-                                    <th>Actions</th>
+                                    <th class="text-center">ID</th>
+                                    <th class="text-center">Name</th>
+                                    <th class="text-center">Category</th>
+                                    <th class="text-center">Seller</th>
+                                    <th class="text-center">Current Price</th>
+                                    <th class="text-center">Status</th>
+                                    <th class="text-center">Created At</th>
+                                    <th class="text-center">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {{#each admincategories}}
+                                {{#each auctions}}
                                 <tr>
-                                    <!-- ID -->
-                                    <td class="fw-semibold">{{id}}</td>
+                                     <!-- ID -->
+                                    <td class="fw-semibold text-center">{{ID}}</td>
 
-                                    <!-- Category name -->
+                                    <!-- Auction Name -->
                                     <td>
-                                        <strong class="text-dark">{{category_name}}</strong><br>
-                                        {{#if parent_name}}
-                                            <small class="text-muted">Under: {{parent_name}}</small>
+                                        <strong class="text-dark">{{Name}}</strong>
+                                    </td>
+
+                                    <!-- Category -->
+                                    <td class="text-center">{{Category}}</td>
+                                    
+                                    <!-- Seller -->
+                                    <td>{{Seller}}</td>
+
+                                    <!-- Current Price -->
+                                    <td class="text-end">
+                                        {{current_price}}
+                                    </td>
+
+                                    <!-- Status -->
+                                    <td class="text-center">
+                                        {{#if (eq Status "active")}}
+                                            <span class="badge bg-success">Active</span>
+                                        {{else if (eq Status "pending")}}
+                                            <span class="badge bg-warning text-dark">Pending</span>
                                         {{else}}
-                                            <small class="text-muted fst-italic">Parent category</small>
+                                            <span class="badge bg-secondary">{{Status}}</span>
                                         {{/if}}
                                     </td>
 
+                                    <!-- Created At -->
+                                    <td class="text-center">{{Created_At}}</td>
                                     <!-- Actions -->
                                     <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-primary"
-                                            onclick="viewCategory(
-                                                '{{id}}',
-                                                '{{category_name}}',
-                                                '{{parent_name}}',
-                                                '{{product_count}}'
-                                            )">
-                                            <i class="bi bi-eye"></i>
-                                            </button>
-
-                                            <button class="btn btn-outline-warning"
-                                            onclick="editCategory(
-                                                '{{id}}',
-                                                '{{category_name}}',
-                                                '{{parent_id}}'
-                                            )">
-                                            <i class="bi bi-pencil"></i>
-                                            </button>
-
+                                        <div class="text-center">
                                             <button
                                                 class="btn btn-outline-danger btn-sm"
                                                 data-bs-toggle="modal"
-                                                data-bs-target="{{#if (gt product_count 0)}}#cannotDeleteCategoryModal{{else}}#deleteCategoryModal{{/if}}"
-                                                {{#unless (gt product_count 0)}}
-                                                    onclick="setDeleteCategory('{{id}}', '{{category_name}}')"
-                                                {{/unless}}
-                                            >
+                                                data-bs-target="#deleteAuctionModal"
+                                                onclick="setDeleteAuction('{{ID}}', '{{Name}}')">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </div>
@@ -293,20 +280,16 @@
                 <div class="card-footer bg-white">
                     <nav aria-label="Page navigation">
                         <ul class="pagination justify-content-center mb-0">
-                            <li class="page-item disabled">
-                                <a class="page-link" href="#">Previous</a>
+                            <li class="page-item {{#if isFirstPage}}disabled{{/if}}">
+                                <a class="page-link" href="/admin/auction?page={{prevPage}}">Previous</a>
                             </li>
-                            <li class="page-item active">
-                                <a class="page-link" href="#">1</a>
+                            {{#each pages}}
+                            <li class="page-item {{#if active}}active{{/if}}">
+                                <a class="page-link" href="/admin/auction?page={{number}}">{{number}}</a>
                             </li>
-                            <li class="page-item">
-                                <a class="page-link" href="#">2</a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="#">3</a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="#">Next</a>
+                            {{/each}}
+                            <li class="page-item {{#if isLastPage}}disabled{{/if}}">
+                                <a class="page-link" href="/admin/auction?page={{nextPage}}">Next</a>
                             </li>
                         </ul>
                     </nav>
@@ -314,137 +297,14 @@
             </div>
         </div>
     </div>
+            
 
-    <!-- Add Category Modal -->
-    <div class="modal fade" id="addCategoryModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form method="post" id="addCategoryForm" action="/admin/category/add">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Add New Category</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">Category Name <span class="text-danger">*</span></label>
-                            <input type="text" name="category_name" class="form-control" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Level</label>
-                            <select class="form-select" name="level" id="categoryLevel" onchange="toggleParentSelect()">
-                                <option value="parent">Parent Category</option>
-                                <option value="child">Sub Category</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-3" id="parentCategoryDiv" style="display: none;">
-                            <label class="form-label">Parent Category</label>
-                            <select
-                                class="form-select"
-                                name="parent_id"
-                                id="addParent"
-                            >
-                                <option value="">Select Parent</option>
-                                {{#each admincategories}}
-                                    {{#unless parent_name}}
-                                        <option value="{{id}}">
-                                            {{category_name}}
-                                        </option>
-                                    {{/unless}}
-                                {{/each}}
-                            </select>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Edit Category Modal -->
-    <div class="modal fade" id="editCategoryModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-
-                <form id="editCategoryForm" method="POST" action="/admin/category/edit">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Edit Category</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-
-                    <div class="modal-body">
-                        <!-- hidden id -->
-                        <input type="hidden" name="id" id="editId">
-
-                        <!-- Category name -->
-                        <div class="mb-3">
-                            <label class="form-label">Category Name</label>
-                            <input
-                                type="text"
-                                class="form-control"
-                                name="category_name"
-                                id="editName"
-                                required
-                            >
-                        </div>
-
-                        <!-- Parent select (ONLY for sub category) -->
-                        <div class="mb-3" id="editParentDiv">
-                            <label class="form-label">Parent Category</label>
-                            <select class="form-select" name="parent_id" id="editParent">
-                                <option value="">Select Parent</option>
-                                {{#each admincategories}}
-                                    {{#unless parent_name}}
-                                        <option value="{{id}}">
-                                            {{category_name}}
-                                        </option>
-                                    {{/unless}}
-                                {{/each}}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                            Cancel
-                        </button>
-                        <button type="submit" class="btn btn-primary">
-                            Update
-                        </button>
-                    </div>
-                </form>
-
-            </div>
-        </div>
-    </div>
-
-    <!-- View Category Modal -->
-    <div class="modal fade" id="viewCategoryModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Category Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p><strong>Name:</strong> <span id="viewName"></span></p>
-                    <p><strong>Parent:</strong> <span id="viewParent"></span></p>
-                    <p><strong>Products:</strong> <span id="viewProducts"></span></p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Delete Category Modal -->
-    <div class="modal fade" id="deleteCategoryModal" tabindex="-1">
+    <!-- Delete Auction Modal -->
+    <div class="modal fade" id="deleteAuctionModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
 
-                <form method="POST" action="/admin/category/delete">
+                <form method="POST" action="/admin/auction/delete">
                     <div class="modal-header">
                         <h5 class="modal-title text-danger">
                             <i class="bi bi-exclamation-triangle"></i> Confirm Deletion
@@ -453,11 +313,11 @@
                     </div>
 
                     <div class="modal-body">
-                        <input type="hidden" name="id" id="deleteCategoryId">
+                        <input type="hidden" name="id" id="deleteAuctionId">
 
                         <p>
                             Are you sure you want to delete
-                            <strong id="deleteCategoryName"></strong>?
+                            <strong id="deleteAuctionName"></strong>?
                         </p>
 
                         <div class="alert alert-warning mb-0">
@@ -483,26 +343,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Cannot Delete Category Modal -->
-    <div class="modal fade" id="cannotDeleteCategoryModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title text-danger">Unable to Delete</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                This category contains products.  
-                Please remove or reassign the products before deleting this category.
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-            </div>
-        </div>
-    </div>
-
 </body>
 
 

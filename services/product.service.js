@@ -117,3 +117,82 @@ export function addProduct(product) {
 export function addProductImages(images) {
   return db('auction_images').insert(images);
 }
+
+// SELECT 
+//     a.auction_id AS ID,
+//     a.name AS Name,
+//     c.cat_name AS Category,
+//     u.full_name AS Seller,
+//     CASE 
+//         WHEN b_max_winner.max_bid IS NULL THEN a.starting_price
+//         ELSE LEAST(
+//             b_max_winner.max_bid,
+//             COALESCE(b_second.max_bid + a.bid_step, a.starting_price)
+//         )
+//     END AS Current_Price,
+//     a.status AS Status
+// FROM auction a
+// JOIN user_account u ON a.seller_id = u.id
+// LEFT JOIN categories c ON a.category_id = c.id
+// -- Lấy max bid của winner
+// LEFT JOIN (
+//     SELECT auction_id, MAX(max_bid) AS max_bid
+//     FROM auction_bids
+//     WHERE is_winning = TRUE
+//     GROUP BY auction_id
+// ) b_max_winner ON b_max_winner.auction_id = a.auction_id
+// -- Lấy max bid của người thứ 2 (không phải winner)
+// LEFT JOIN (
+//     SELECT auction_id, MAX(max_bid) AS max_bid
+//     FROM auction_bids
+//     WHERE is_winning = FALSE
+//     GROUP BY auction_id
+// ) b_second ON b_second.auction_id = a.auction_id
+// ORDER BY a.auction_id;
+export function getAllAuctionsForAdmin(limit, offset) {
+    return db('auction as a')
+    .join('user_account as u', 'a.seller_id', 'u.id')
+    .leftJoin('categories as c', 'a.category_id', 'c.id')
+    .leftJoin(
+        db('auction_bids')
+        .where('is_winning', true)
+        .select('auction_id')
+        .max('max_bid as max_bid')
+        .groupBy('auction_id')
+        .as('b_max_winner'),
+        'b_max_winner.auction_id',
+        'a.auction_id'
+    )
+    .leftJoin(
+        db('auction_bids')
+        .where('is_winning', false)
+        .select('auction_id')
+        .max('max_bid as max_bid')
+        .groupBy('auction_id')
+        .as('b_second'),
+        'b_second.auction_id',
+        'a.auction_id'
+    )
+    .select(
+        'a.auction_id AS ID',
+        'a.name AS Name',
+        'c.cat_name AS Category',
+        'u.full_name AS Seller',
+        'a.created_at AS Created_At',
+        db.raw(`CASE 
+            WHEN b_max_winner.max_bid IS NULL THEN a.starting_price
+            ELSE LEAST(
+                b_max_winner.max_bid,
+                COALESCE(b_second.max_bid + a.bid_step, a.starting_price)
+            )
+        END AS Current_Price`),
+        'a.status AS Status'
+    )
+    .orderBy('a.auction_id')
+    .limit(limit)
+    .offset(offset);
+}
+
+export function deleteAuctionById(id) {
+    return db('auction').where('auction_id', id).del();
+}

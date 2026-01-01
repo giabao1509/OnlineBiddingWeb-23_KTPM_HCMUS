@@ -177,7 +177,7 @@ router.post('/google-signin', async (req, res) => {
 });
 
 router.get('/dashboard', isAuth, async (req, res) => { 
-    res.render('dashboard');
+    res.render('Buyer/dashboard');
 });
 
 

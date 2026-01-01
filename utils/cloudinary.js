@@ -11,4 +11,22 @@ cloudinary.v2.config({
   api_secret: process.env.CLOUD_API_SECRET,
 });
 
+
+export async function deleteImageByPublicId(publicId) {
+    try {
+        if (!publicId) {
+            throw new Error('public_id is required to delete image');
+        }
+
+        const result = await cloudinary.uploader.destroy(publicId);
+        console.log('Deleted image:', result);
+        return result;
+    } catch (err) {
+        console.error('Error deleting image:', err);
+        throw err;
+    }
+}
+
+
+
 export default cloudinary;
