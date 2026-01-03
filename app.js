@@ -32,11 +32,27 @@ app.use(cookieParser());
 app.engine('handlebars', engine({
   helpers: {
     format_currency(value) {
-      return new Intl.NumberFormat('en-US').format(value);
+      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
     },
     gt: (a, b) => Number(a) > b,
     add: (a, b) => a + b,
     eq: (a, b) => a === b,
+    formatFullDate(date) {
+      const d = new Date(date);
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0'); // Month bắt đầu từ 0
+      const year = d.getFullYear();
+
+      let hours = d.getHours();
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      if (hours === 0) hours = 12; // 12 AM / 12 PM
+      const strHours = String(hours).padStart(2, '0');
+
+      return `${day}/${month}/${year} ${strHours}:${minutes} ${ampm}`;
+    },
+    gte: (a, b) => Number(a) >= b,
     section: expressHandlebarsSections()
   }
 }));
@@ -92,7 +108,63 @@ app.get('/', (req, res) => {
 });
 
 app.get('/test', (req, res) => { 
-  res.render('Admin/categorymanagement');
+
+
+
+  res.render('test',
+    {
+      isBuyer: false,
+      isSeller: true,
+
+      product: {
+        image: "https://picsum.photos/300/300?random=5",
+        name: "MacBook Pro M2 14-inch",
+        finalPrice: "32.500.000 ₫",
+        endTime: "02/01/2026 09:30 PM"
+      },
+
+      order: {
+        id: "ORD-20260102-001",
+        step: 2 // 1: Thanh toán | 2: Vận chuyển | 3: Nhận hàng | 4: Đánh giá
+      },
+
+      seller: {
+        name: "Nguyễn Văn A",
+        rating: 4.8,
+        totalTransactions: 152
+      },
+
+      buyer: {
+        name: "Trần Thị B",
+        rating: 4.6,
+        totalTransactions: 87
+      },
+
+      messages: [
+        {
+          sender: "buyer",
+          content: "Chào bạn, mình đã thanh toán rồi nhé.",
+          time: "02/01/2026 08:15 PM"
+        },
+        {
+          sender: "seller",
+          content: "Mình xác nhận đã nhận tiền, sẽ gửi hàng hôm nay.",
+          time: "02/01/2026 08:20 PM"
+        },
+        {
+          sender: "buyer",
+          content: "Ok bạn, nhớ đóng gói kỹ giúp mình.",
+          time: "02/01/2026 08:22 PM"
+        },
+        {
+          sender: "seller",
+          content: "Yên tâm nhé, mình gửi bằng GHTK.",
+          time: "02/01/2026 08:25 PM"
+        }
+      ]
+    }
+    
+  );
 });
 app.use('/accounts', accountRouter);
 app.use('/products', productRouter);

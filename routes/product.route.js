@@ -2,6 +2,7 @@ import express from 'express';
 import * as productsService from '../services/product.service.js';
 import { maskName } from '../utils/mask.js';
 import { isAuth } from '../middlewares/auth.mdw.js';
+import * as bidsService from '../services/bids.service.js';
 const router = express.Router();
 
 
@@ -84,6 +85,7 @@ router.get('/detail/:id', async (req, res) => {
   const auctionID = Number(req.params.id) || 0;
 
   const product = await productsService.getProductsDetailById(auctionID);
+  console.log(product);
   if (!product) {
     return res.status(404).render('404');
   }
@@ -102,36 +104,59 @@ router.get('/detail/:id', async (req, res) => {
       ...b,
       bidder_name: maskName(b.bidder_name)
     }));
-
-    // Lấy giá hiện tại
-    let max = product.bidHistory[0];
-    for (let i = 1; i < product.bidHistory.length; i++) {
-      if (Number(product.bidHistory[i].amount) > Number(max.amount)) {
-        max = product.bidHistory[i];
-      }
-    }
-    product.current_bid = max.amount;
-  } else {
-    // Chưa có ai bid
-    product.current_bid = product.starting_price;
   }
+
+  const top_bidder = await productsService.getTop1Bidders(auctionID);
+  console.log('Top bidder:', top_bidder);
+  
+  product.top_bidder = top_bidder ? {
+    ...top_bidder,
+    bidder_name: maskName(top_bidder.bidder_name)
+  } : null; 
+  
 
   /* ========= TIME REMAINING ========= */
   const now = new Date();
   const end = new Date(product.end_time);
+
   const diffMs = end - now;
 
   if (diffMs <= 0) {
-    product.time_remaining = "Đã kết thúc";
+      product.time_remaining = "Ended";
   } else {
-    const diffSec = Math.floor(diffMs / 1000);
-    const days = Math.floor(diffSec / (24 * 3600));
-    const hours = Math.floor((diffSec % (24 * 3600)) / 3600);
-    const minutes = Math.floor((diffSec % 3600) / 60);
-    const seconds = diffSec % 60;
+      const diffSec = Math.floor(diffMs / 1000);
+      const days = Math.floor(diffSec / (24 * 3600));
+      const hours = Math.floor((diffSec % (24 * 3600)) / 3600);
+      const minutes = Math.floor((diffSec % 3600) / 60);
+      const seconds = diffSec % 60;
 
-    product.time_remaining = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+      // If less than 3 days → show relative time
+      if (days < 3) {
+          if (days > 0) {
+              product.time_remaining = `${days} day${days > 1 ? 's' : ''} left`;
+          } else if (hours > 0) {
+              product.time_remaining = `${hours} hour${hours > 1 ? 's' : ''} left`;
+          } else if (minutes > 0) {
+              product.time_remaining = `${minutes} minute${minutes > 1 ? 's' : ''} left`;
+          } else {
+              product.time_remaining = `${seconds} second${seconds > 1 ? 's' : ''} left`;
+          }
+      } else {
+          // Show full countdown if >= 3 days
+          product.time_remaining = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+      }
   }
+
+  // Formatted end time for display
+  product.end_time_formatted = end.toLocaleString('en-US', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+  });
+
 
   /* ========= COMMENTS ========= */
   const comments = await productsService.getAllProductComments(auctionID) || [];
@@ -141,20 +166,50 @@ router.get('/detail/:id', async (req, res) => {
     c.reply = comments.filter(r => r.parent_id === c.comment_id);
   });
 
+  
+
   product.comments = roots;
 
+  if (product.comments.length > 0) {
+    product.comments = product.comments.map(c => ({
+      ...c,
+      user_name: maskName(c.user_name),
+      reply: c.reply.map(r => ({
+        ...r,
+        user_name: maskName(r.user_name)
+      }))
+    }));
+  }
+  //console.log(product.comments);
   const total_comments = await productsService.countProductComments(auctionID);
   product.total_comments = total_comments?.count || 0;
 
   res.render('Products/detail', { product });
 });
 
+router.post('/detail/:id/bid', isAuth, async (req, res) => {
+    const { max_bid } = req.body
+    const auction_id = req.params.id;
+    const bidder_id = req.user.id;
+    const bid = {
+        auction_id: Number(auction_id),
+        bidder_id: Number(bidder_id),
+        max_bid: Number(max_bid),
+    };
+    console.log(bid);
+    await bidsService.placeBid(bid);
+
+    req.flash('success', 'Your bid has been placed successfully.');
+    const retUrl = req.headers.referer || '/';
+    res.redirect(retUrl);
+});
 
 
 
-router.post('/comments/create', isAuth, async (req, res) => {
-    const { auction_id, content, parent_id } = req.body;
 
+router.post('/detail/:id/comments/create', isAuth, async (req, res) => {
+    const { content, parent_id } = req.body;
+    const auction_id = req.params.id;
 
     if (!content || !content.trim()) {
         return res.status(400).send('Content is required');
@@ -167,7 +222,9 @@ router.post('/comments/create', isAuth, async (req, res) => {
         user_id: req.user.id
     }
 
-
+    if (!parent_id) {
+      //send email notification to seller about new comment
+    }
     //console.log(comment)
     await productsService.addProductComments(comment)
 

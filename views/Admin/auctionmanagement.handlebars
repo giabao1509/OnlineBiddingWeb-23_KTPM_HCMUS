@@ -237,27 +237,27 @@
                                     <td class="fw-semibold text-center">{{ID}}</td>
 
                                     <!-- Auction Name -->
-                                    <td>
-                                        <strong class="text-dark">{{Name}}</strong>
+                                    <td class="text-center">
+                                        <strong >{{Name}}</strong>
                                     </td>
 
                                     <!-- Category -->
                                     <td class="text-center">{{Category}}</td>
                                     
                                     <!-- Seller -->
-                                    <td>{{Seller}}</td>
+                                    <td class="text-center">{{Seller}}</td>
 
                                     <!-- Current Price -->
-                                    <td class="text-end">
-                                        {{current_price}}
+                                    <td class="text-center">
+                                        {{Current_Price}}
                                     </td>
 
                                     <!-- Status -->
                                     <td class="text-center">
-                                        {{#if (eq Status "active")}}
-                                            <span class="badge bg-success">Active</span>
-                                        {{else if (eq Status "pending")}}
-                                            <span class="badge bg-warning text-dark">Pending</span>
+                                        {{#if (eq Status "Completed")}}
+                                            <span class="badge bg-primary">Completed</span>
+                                        {{else if (eq Status "Bidding")}}
+                                            <span class="badge bg-warning text-dark">Bidding</span>
                                         {{else}}
                                             <span class="badge bg-secondary">{{Status}}</span>
                                         {{/if}}

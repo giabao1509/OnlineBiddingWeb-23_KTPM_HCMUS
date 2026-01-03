@@ -11,7 +11,7 @@ import bcrypt from 'bcryptjs';
 
 router.get('/category', isAuth, isAdmin, async (req, res) => {
      const page = parseInt(req.query.page) || 1;
-    const limit = 1;
+    const limit = 5;
     const offset = (page - 1) * limit;
     const totalCategories = await categoryService.countAllCategories();
     //console.log(totalAuction);
@@ -35,7 +35,8 @@ router.get('/category', isAuth, isAdmin, async (req, res) => {
         nextPage,
         isFirstPage,
         isLastPage,
-        pages 
+        pages,
+        totalPages
     });
 });
 
@@ -75,7 +76,7 @@ router.post('/category/delete', isAuth, isAdmin, async (req, res) => {
 
 router.get('/auction', isAuth, isAdmin, async (req, res) => {
     const page = parseInt(req.query.page) || 1;
-    const limit = 3;
+    const limit = 5;
     const offset = (page - 1) * limit;
     const totalAuction = await productsService.countAll();
     //console.log(totalAuction);
@@ -92,7 +93,7 @@ router.get('/auction', isAuth, isAdmin, async (req, res) => {
     //console.log(totalPages)
     //console.log(pages);
     const autoExtend = await auctionConfigService.getAuctionConfig();
-    console.log(autoExtend);
+    //console.log(autoExtend);
     const auctions = await productsService.getAllAuctionsForAdmin(limit, offset);
     res.render('Admin/auctionmanagement', { 
         auctions: auctions, 
@@ -101,7 +102,8 @@ router.get('/auction', isAuth, isAdmin, async (req, res) => {
         nextPage,
         isFirstPage,
         isLastPage,
-        pages
+        pages,
+        totalPages
     });
 });
 
@@ -188,7 +190,8 @@ router.get('/users', isAuth, isAdmin, async (req, res) => {
         nextPage,
         isFirstPage,
         isLastPage,
-        pages
+        pages,
+        totalPages
     });
     
 });
