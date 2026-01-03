@@ -1,5 +1,25 @@
 import db from '../utils/db.js';
 
+export function getProductsNearesttoEnd(prod_amount){
+  return db('auction')
+    .orderBy('end_time', 'asc')
+    .limit(prod_amount);
+}
+
+export function getProductsMostBids(prod_amount){
+  return db('auction as a')
+    .leftJoin('auction_bids as ab', 'ab.auction_id', 'a.auction_id')
+    .select('a.*', db.raw('COUNT(ab.bid_id) as bid_count'))
+    .groupBy('a.auction_id')
+    .orderBy('bid_count', 'desc')
+    .limit(prod_amount);
+}
+
+export function getProductsHighestPrice(prod_amount){
+  return db('auction')
+    .orderBy('current_price', 'desc')
+    .limit(prod_amount);
+}
 
 export function getProductsDetailById(id) {
     return db('auction as a')
