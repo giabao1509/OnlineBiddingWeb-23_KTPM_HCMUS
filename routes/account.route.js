@@ -5,6 +5,7 @@ import { verifyCaptcha, isAuth} from '../middlewares/auth.mdw.js';
 import { generateToken, generateOTPToken, verifyToken } from '../utils/jwt.js';
 import { sendOTPEmail, generateOTP } from '../utils/otp.js';
 import { OAuth2Client } from 'google-auth-library';
+import { create } from 'express-handlebars';
 
 
 
@@ -92,7 +93,7 @@ router.post('/send-otp', async (req, res) => {
 
   await accountService.addOTP(otp)
 
-  sendOTPEmail(email, otp_code);
+  await sendOTPEmail(email, otp_code);
 
   res.json({ success: true, message: "OTP sent!" });
 });
@@ -123,7 +124,9 @@ router.post('/signin', async (req, res) => {
 
     const token = generateToken(user);
     res.cookie('authToken', token, { httpOnly: true, maxAge: 3600*1000 });
-    res.redirect('/accounts/dashboard');
+
+    req.flash('success', 'Signin successfully.');
+    res.redirect('/');
 });
 
 
@@ -164,19 +167,25 @@ router.post('/google-signin', async (req, res) => {
       }
     }
 
-    const jwtToken = generateToken({ id: user.id, email: user.email, role: user.role });
+    const jwtToken = generateToken(user);
 
     res.cookie('authToken', jwtToken, { httpOnly: true, maxAge: 3600*1000 });
-    res.json({ success: true, user });
+    req.flash('success', 'Signin successfully.');
+    res.json({ success: true });
+    // res.redirect('/');
 
   } catch (err) {
-    console.error(err);
-    res.status(401).json({ message: 'Invalid Google token' });
+    //console.error(err);
+    //res.status(401).json({ message: 'Invalid Google token' });
+    res.render('Accounts/signin', { 
+        error: 'Google sign-in failed. Please try again.',
+        RECAPTCHA_SITE_KEY: process.env.RECAPTCHA_SITE_KEY
+    });
   }
 });
 
 router.get('/dashboard', isAuth, async (req, res) => { 
-    res.render('dashboard');
+    res.render('Buyer/dashboard');
 });
 
 
@@ -186,12 +195,16 @@ router.get('/forgotpassword', async (req, res) => {
 
 router.post('/forgotpassword', async (req, res) => { 
     const email = req.body.email;
-    
     const user = await accountService.getAccountByEmail(email);
+    
     if (!user) {
-        return res.render('Accounts/forgotpassword', {
-            error: 'This email is not registered in our system.'
-        });
+        req.flash('error', 'This email is not registered in our system.');
+        return res.redirect('/accounts/forgotpassword');
+    }
+
+    if (user.googleId) {
+        req.flash('error', 'Password reset is not available for Google-linked accounts. Please sign in with Google.');
+        return res.redirect('/accounts/forgotpassword');
     }
     // Xóa OTP cũ nếu có
     await accountService.deleteOTP(email);
@@ -205,8 +218,8 @@ router.post('/forgotpassword', async (req, res) => {
     };
     await accountService.addOTP(otp);
 
-    
-    sendOTPEmail(email, otp_code);
+
+    await sendOTPEmail(email, otp_code);
 
     
     const token = generateOTPToken(email);
@@ -287,94 +300,18 @@ router.post('/resetpassword', async (req, res) => {
     res.render('Accounts/resetpassword', {success: "Password has been changed.", disabled: true });
 });
 
-router.get('/profile', (req, res) => {
-
-      const stats = {
+router.get('/profile', isAuth, (req, res) => {
+    //console.log("Rendering profile for user:", userInfo);
+    const stats = {
     activeBids: 3,
     wonAuctions: 1,
     watchlist: 4,
     totalSpent: 12.5
-};
+    };
 
-const activeBids = [
-    {
-        id: 101,
-        title: "iPhone 14 Pro Max 256GB",
-        category: "Điện thoại",
-        image: "/img/products/iphone14.jpg",
-        yourBid: 21000000,
-        currentBid: 21500000,
-        isWinning: false,
-        timeRemaining: "2 giờ 15 phút"
-    },
-    {
-        id: 102,
-        title: "Laptop ASUS ROG Strix G15",
-        category: "Laptop Gaming",
-        image: "/img/products/rog-g15.jpg",
-        yourBid: 15000000,
-        currentBid: 14800000,
-        isWinning: true,
-        timeRemaining: "45 phút"
-    }
-];
 
-const endingSoon = [
-    {
-        id: 201,
-        title: "Tai nghe AirPods Pro 2",
-        image: "/img/products/airpods2.jpg",
-        currentBid: 4200000,
-        timeLeft: "12 phút"
-    },
-    {
-        id: 202,
-        title: "Đồng hồ Casio G-SHOCK",
-        image: "/img/products/gshock.jpg",
-        currentBid: 2800000,
-        timeLeft: "25 phút"
-    }
-];
-
-const wonAuctions = [
-    {
-        orderId: 3001,
-        title: "Chuột Logitech G Pro Wireless",
-        image: "/img/products/logitech-gpro.jpg",
-        winningBid: 1800000,
-        isPaid: true
-    },
-    {
-        orderId: 3002,
-        title: "Monitor LG Ultrawide 29''",
-        image: "/img/products/lg-ultrawide.jpg",
-        winningBid: 4500000,
-        isPaid: false
-    }
-];
-
-const watchlist = [
-    {
-        id: 401,
-        title: "PS5 Slim Digital Edition",
-        image: "/img/products/ps5.jpg",
-        currentBid: 9500000,
-        timeLeft: "3 giờ"
-    },
-    {
-        id: 402,
-        title: "Bàn phím cơ Keychron K4",
-        image: "/img/products/keychron-k4.jpg",
-        currentBid: 1600000,
-        timeLeft: "1 giờ 20 phút"
-    }
-];
     res.render('Accounts/profile', {
         stats,
-        activeBids,
-        endingSoon,
-        wonAuctions,
-        watchlist
     });
 });
 

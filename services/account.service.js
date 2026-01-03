@@ -34,6 +34,14 @@ export function getAccountByGoogleId(googleId) {
     return db('user_account').where({ googleId }).first();
 }
 
+export function getAllUsers(limit = 5, offset = 0) {
+    return db('user_account').select('id', 'email', 'full_name', 'role', 'created_at', 'status')
+    .whereNot('role', 2)
+    .limit(limit)
+    .offset(offset)
+    .orderBy('id', 'asc');
+}   
+
 export function linkGoogleId(userId, googleId) {
     return db('user_account')
         .where({ id: userId })
@@ -41,3 +49,15 @@ export function linkGoogleId(userId, googleId) {
 }
 
 
+export function updateAccount(id, updatedData) {
+    return db('user_account')
+        .where('id', id)
+        .update(updatedData);
+}   
+
+export function countAllUsers() {
+    return db('user_account')
+        .whereNot('role', 2)
+        .count('id as count')
+        .first();
+}

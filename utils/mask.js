@@ -1,18 +1,15 @@
-export function maskName(name) {
-    if (!name) return "Ẩn danh";
+export function maskName(name, maskLength = 5) {
+    if (!name) return "Anonymous";
 
     name = name.trim();
-    if (name.length === 0) return "Ẩn danh";
+    if (name.length === 0) return "Anonymous";
 
-    // Tách từ
+    // Split name into words
     const parts = name.split(/\s+/);
     const lastName = parts[parts.length - 1];
 
-    // Tổng số ký tự của phần bị che (tức toàn bộ trừ tên cuối)
-    const maskedLength = name.length - lastName.length;
-
-    // Tạo chuỗi mask
-    const mask = "*".repeat(Math.max(1, maskedLength));
+    // Create fixed-length mask
+    const mask = "*".repeat(Math.max(1, maskLength));
 
     return mask + lastName;
 }
