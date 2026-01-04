@@ -95,6 +95,7 @@ export function getProductBiddingHistory(auction_id) {
     .join('user_account as u', 'u.id', 'bidder_id')
     .select('ab.*', 'u.full_name as bidder_name', 'u.email as bidder_email', 'u.address as bidder_address')
     .where('auction_id', auction_id)
+    .andWhere('ab.is_rejected', false)
     .orderBy('ab.created_at', 'desc');
 }
 
@@ -189,15 +190,13 @@ export function getTop1Bidders(auction_id) {
 }
 
 
-{/* <div class="top-bidder-card p-3 mb-4 border rounded bg-light">
-                    <h6 class="mb-2">Top Bidder</h6>
-                    {{#if product.top_bidder}}
-                    <div class="d-flex align-items-center">
-                        <span class="fw-semibold me-2">{{product.top_bidder.name}}</span>
-                        <small class="text-muted">({{product.top_bidder.reviews}} reviews)</small>
-                        <span class="ms-auto fw-bold text-success">{{product.top_bidder.amount}} VNĐ</span>
-                    </div>
-                    {{else}}
-                    <p class="text-muted mb-0">No bids yet</p>
-                    {{/if}}
-                </div> */}
+export function addToWatchList(watchlistItem) {
+    return db('watch_list').insert(watchlistItem);
+}
+
+
+export function updateProductDescription(auction_id, newDescription) {
+    return db('auction')
+        .where('auction_id', auction_id)
+        .update({ description: newDescription });
+}

@@ -121,10 +121,17 @@
                 </div>
 
                 <div class="d-grid gap-2">
-                    <a href="/products/detail/{{this.auction_id}}" class="btn btn-primary">
+                    <a href="/products/detail/{{this.auction_id}}" class="btn btn-primary mb-2">
                         <i class="bi bi-eye"></i> View details
                     </a>
-                </div>
+                    {{#if ../user}}
+                    <form action="/products/add_to_watchlist/{{this.auction_id}}" method="POST">
+                        <button type="submit" class="btn btn-outline-danger w-100">
+                            <i class="bi bi-heart"></i> Add to Watchlist
+                        </button>
+                    </form>
+                    {{/if}}
+            </div>
             </div>
         </div>
     </div>

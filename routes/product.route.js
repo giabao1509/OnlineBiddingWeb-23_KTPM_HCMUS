@@ -3,6 +3,7 @@ import * as productsService from '../services/product.service.js';
 import { maskName } from '../utils/mask.js';
 import { isAuth } from '../middlewares/auth.mdw.js';
 import * as bidsService from '../services/bids.service.js';
+import { appendDescriptionWithDate } from '../utils/appenDescription.js';
 const router = express.Router();
 
 
@@ -85,7 +86,11 @@ router.get('/detail/:id', async (req, res) => {
   const auctionID = Number(req.params.id) || 0;
 
   const product = await productsService.getProductsDetailById(auctionID);
-  console.log(product);
+  if (res.locals.user) {
+    product.isOwner = Number(res.locals.user.id) === product.seller_id;
+  }
+
+  //console.log(product);
   if (!product) {
     return res.status(404).render('404');
   }
@@ -106,9 +111,11 @@ router.get('/detail/:id', async (req, res) => {
     }));
   }
 
+  console.log('Bidding history:', product.bidHistory);
+
   const top_bidder = await productsService.getTop1Bidders(auctionID);
-  console.log('Top bidder:', top_bidder);
-  
+  //console.log('Top bidder:', top_bidder);
+
   product.top_bidder = top_bidder ? {
     ...top_bidder,
     bidder_name: maskName(top_bidder.bidder_name)
@@ -187,6 +194,26 @@ router.get('/detail/:id', async (req, res) => {
   res.render('Products/detail', { product });
 });
 
+router.post('/detail/:id/description/edit', isAuth, async (req, res) => {
+  const productId = Number(req.params.id);
+  const newContent = req.body.description || '';
+
+  // Lấy mô tả cũ từ DB
+  const product = await productsService.getProductsDetailById(productId);
+  if (!product) {
+      req.flash('error', 'Product not found');
+      return res.redirect('back');
+  }
+
+  const updatedDescription = appendDescriptionWithDate(product.description, newContent);
+
+  await productsService.updateProductDescription(productId, updatedDescription);
+
+  req.flash('success', 'Product description updated.');
+  const retUrl = req.headers.referer || '/';
+  res.redirect(retUrl);
+});
+
 router.post('/detail/:id/bid', isAuth, async (req, res) => {
     const { max_bid } = req.body
     const auction_id = req.params.id;
@@ -204,7 +231,25 @@ router.post('/detail/:id/bid', isAuth, async (req, res) => {
     res.redirect(retUrl);
 });
 
+router.post('/detail/:id/bid/reject', isAuth, async (req, res) => {
+    const { bidId } = req.body;
+    const auction_id = req.params.id;
+    await bidsService.rejectBid(Number(bidId), Number(auction_id));
+    console.log('Rejected bid ID:', bidId);
+    console.log('For auction ID:', auction_id);
+    req.flash('success', 'The bid has been rejected successfully.');
+    const retUrl = req.headers.referer || '/';
+    res.redirect(retUrl);
+});
 
+router.post('/add_to_watchlist/:id', isAuth, async (req, res) => {
+    const auction_id = req.params.id;
+    const user_id = req.user.id;
+    await productsService.addToWatchList({user_id: Number(user_id), auction_id: Number(auction_id)});
+    req.flash('success', 'Product added to your watchlist.');
+    const retUrl = req.headers.referer || '/';
+    res.redirect(retUrl);
+});
 
 
 router.post('/detail/:id/comments/create', isAuth, async (req, res) => {

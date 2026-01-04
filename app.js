@@ -38,6 +38,7 @@ app.engine('handlebars', engine({
     gt: (a, b) => Number(a) > b,
     add: (a, b) => a + b,
     eq: (a, b) => a === b,
+    add: (a, b) => Number(a) + Number(b),
     formatFullDate(date) {
       const d = new Date(date);
       const day = String(d.getDate()).padStart(2, '0');

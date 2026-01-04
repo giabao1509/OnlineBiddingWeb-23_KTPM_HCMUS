@@ -9,3 +9,11 @@ export function getBidsByAuctionId(auctionId) {
 export function placeBid(bid) {
     return db('auction_bids').insert(bid);
 }
+
+
+export function rejectBid(bidId, auctionId) {
+    return db('auction_bids')
+  .where('bid_id', bidId)
+  .andWhere('auction_id', auctionId)
+  .update({ is_rejected: true });
+}
