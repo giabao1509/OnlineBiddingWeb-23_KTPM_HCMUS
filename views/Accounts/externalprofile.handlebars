@@ -1,0 +1,295 @@
+{{#if userNotFound}}
+  <div class="alert alert-danger" role="alert">
+    User not found.
+  </div>
+{{else}}
+<!-- External User Profile Page -->
+<div class="container py-5">
+  <!-- User Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center">
+            <!-- Avatar -->
+            <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center me-4 flex-shrink-0" style="width: 100px; height: 100px; font-size: 2.5rem;">
+              <i class="bi bi-person-fill"></i>
+            </div>
+
+            <div class="flex-grow-1">
+              <h2 class="fw-bold mb-3">{{userInfo.full_name}}</h2>
+
+              <div class="d-flex flex-wrap gap-3 align-items-center">
+                <!-- Joined Date -->
+                <div class="d-flex align-items-center text-muted">
+                  <i class="bi bi-calendar-check me-2"></i>
+                  <span>Joined {{formatFullDate userInfo.created_at}}</span>
+                </div>
+
+                <!-- Rating Percentage -->
+                <div class="d-flex align-items-center">
+                  <i class="bi bi-shield-check me-2 {{#if (gte userInfo.rating_percent 80)}}text-success{{else if (gte userInfo.rating_percent 50)}}text-warning{{else}}text-danger{{/if}}"></i>
+                  <span class="badge {{#if (gte userInfo.rating_percent 80)}}bg-success{{else if (gte userInfo.rating_percent 50)}}bg-warning{{else}}bg-danger{{/if}} rounded-pill px-3 py-2 fs-6">
+                    {{userInfo.rating_percent}}%
+                  </span>
+                  <span class="text-muted ms-2 small">({{userInfo.total_reviews}} reviews)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-8 mx-auto">
+      <!-- Reviews Section -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-dark text-white border-0 py-3">
+          <h5 class="mb-0">
+            <i class="bi bi-star me-2"></i>Reviews & Ratings
+          </h5>
+        </div>
+        <div class="card-body p-0">
+          <!-- Reviews Container -->
+          <div id="reviewsContainer">
+            {{#each reviews}}
+            <div class="review-item border-bottom p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center me-3"
+                            style="width: 50px; height: 50px;">
+                        <i class="bi bi-person-fill text-secondary fs-5"></i>
+                        </div>
+                        <div>
+                        <h6 class="mb-0 fw-bold">{{full_name}}</h6>
+                        <small class="text-muted">{{formatFullDate created_at}}</small>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center {{#if (eq rating 1)}}text-success{{else}}text-danger{{/if}}">
+                        <i class="bi {{#if (eq rating 1)}} bi-hand-thumbs-up-fill {{else}} bi-hand-thumbs-down-fill {{/if}} fs-5"></i>
+                        <span class="ms-2 fw-bold">{{#if (eq rating 1)}}+1{{else}}-1{{/if}}</span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                <h6 class="text-dark mb-2">
+                    <i class="bi bi-box-seam me-2 text-muted"></i>
+                    {{product_name}}
+                </h6>
+                <p class="mb-0 text-secondary">{{comment}}</p>
+                </div>
+            </div>
+            {{/each}}
+            </div>
+
+
+          <!-- Loading Indicator -->
+          <div id="loadingIndicator" class="text-center py-4 d-none">
+            <div class="spinner-border text-dark" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="text-muted mt-2 mb-0">Loading more reviews...</p>
+          </div>
+
+          <!-- No More Reviews Message -->
+          <div id="noMoreReviews" class="text-center py-4 d-none">
+            <i class="bi bi-check-circle text-success fs-3 d-block mb-2"></i>
+            <p class="text-muted mb-0">You've reached the end of reviews</p>
+          </div>
+        
+          <!-- Empty State -->
+          {{#unless reviews}}
+          <div class="text-center py-5">
+            <i class="bi bi-star fs-1 text-muted opacity-50 d-block mb-3"></i>
+            <p class="text-muted mb-0">No reviews yet</p>
+          </div>
+          {{/unless}}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{{/if}}
+
+{{#section 'css'}}
+<style>
+  .review-item {
+    transition: background-color 0.2s ease;
+  }
+
+  .review-item:hover {
+    background-color: #f8f9fa;
+  }
+
+  .review-item:last-child {
+    border-bottom: none !important;
+  }
+
+  .bi-star-fill {
+    font-size: 1rem;
+  }
+
+  #reviewsContainer {
+  max-height: 500px;     /* chiều cao cố định */
+  overflow-y: auto;      /* bật scroll dọc */
+}
+
+  .spinner-border {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  /* Smooth fade-in for new reviews */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .review-item.new-item {
+    animation: fadeIn 0.3s ease;
+  }
+</style>
+{{/section}}
+
+{{#section 'js'}}
+<script>
+    // Infinite Scroll Configuration
+    const userId = '{{userInfo.id}}'; // Get from template
+
+    // Function to load more reviews
+    let currentPage = 1;
+    let isLoading = false;
+    let hasMore = true;
+
+    // Get elements
+    const reviewsContainer = document.getElementById('reviewsContainer');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const noMoreReviews = document.getElementById('noMoreReviews');
+
+    async function loadMoreReviews() {
+    if (isLoading || !hasMore) return;
+
+    isLoading = true;
+    loadingIndicator.classList.remove('d-none');
+
+    try {
+        const res = await fetch(
+        `/accounts/external_profile/${userId}/reviews?page=${currentPage + 1}`
+        );
+
+        const data = await res.json();
+
+        data.reviews.forEach(r => {
+        reviewsContainer.insertAdjacentHTML(
+            'beforeend',
+            createReviewElement(r)
+        );
+        });
+
+        currentPage++;
+        hasMore = data.hasMore;
+
+        if (!hasMore) {
+        noMoreReviews.classList.remove('d-none');
+        }
+
+    } catch (e) {
+        console.error(e);
+    } finally {
+        isLoading = false;
+        loadingIndicator.classList.add('d-none');
+    }
+    }
+
+    function formatFullDate(date) {
+      const d = new Date(date);
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0'); // Month bắt đầu từ 0
+      const year = d.getFullYear();
+
+      let hours = d.getHours();
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      if (hours === 0) hours = 12; // 12 AM / 12 PM
+      const strHours = String(hours).padStart(2, '0');
+
+      return `${day}/${month}/${year} ${strHours}:${minutes} ${ampm}`;
+    };
+
+    function createReviewElement(review) {
+        const rating = Number(review.rating);
+
+        let ratingIcon = '';
+        let ratingText = '';
+        let ratingClass = '';
+
+        if (rating === 1) {
+            ratingIcon = 'bi-hand-thumbs-up-fill';
+            ratingText = '+1';
+            ratingClass = 'text-success';
+        } else if (rating === -1) {
+            ratingIcon = 'bi-hand-thumbs-down-fill';
+            ratingText = '-1';
+            ratingClass = 'text-danger';
+        } 
+
+        return `
+            <div class="review-item border-bottom p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center me-3"
+                            style="width: 50px; height: 50px;">
+                            <i class="bi bi-person-fill text-secondary fs-5"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0 fw-bold">${review.full_name}</h6>
+                            <small class="text-muted">${formatFullDate(review.created_at)}</small>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center ${ratingClass}">
+                        <i class="bi ${ratingIcon} fs-5"></i>
+                        <span class="ms-2 fw-bold">${ratingText}</span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <h6 class="text-dark mb-2">
+                        <i class="bi bi-box-seam me-2 text-muted"></i>
+                        ${review.product_name}
+                    </h6>
+                    <p class="mb-0 text-secondary">${review.comment || ''}</p>
+                </div>
+            </div>
+        `;
+    }
+
+
+  // Infinite scroll event listener
+  reviewsContainer.addEventListener('scroll', () => {
+  const scrollTop = reviewsContainer.scrollTop;
+  const clientHeight = reviewsContainer.clientHeight;
+  const scrollHeight = reviewsContainer.scrollHeight;
+
+  // Khi còn cách đáy ~100px
+  if (scrollTop + clientHeight >= scrollHeight - 100) {
+    loadMoreReviews();
+  }
+});
+
+  // Mark initial reviews as animated to prevent re-animation
+  document.querySelectorAll('.review-item').forEach(item => {
+    item.classList.add('animated');
+  });
+</script>
+{{/section}}

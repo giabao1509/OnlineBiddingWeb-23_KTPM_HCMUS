@@ -168,6 +168,83 @@ app.get('/test', (req, res) => {
     
   );
 });
+
+app.get('/test2', (req, res) => {
+
+  
+  res.render('Accounts/externalprofile',
+    {
+  "reviews": [
+    {
+      "reviewer_name": "Nguyễn Văn A",
+      "created_at": "2025-01-02",
+      "rating": 5,
+      "auction_title": "iPhone 13 Pro Max 256GB",
+      "comment": "Seller rất uy tín, đóng gói cẩn thận.",
+      "reply": "Cảm ơn bạn đã ủng hộ shop!",
+      "reply_date": "2025-01-03"
+    },
+    {
+      "reviewer_name": "Trần Thị B",
+      "created_at": "2025-01-01",
+      "rating": 4,
+      "auction_title": "MacBook Air M1",
+      "comment": "Giao hàng nhanh, sản phẩm đúng mô tả.",
+      "reply": null,
+      "reply_date": null
+    },
+    {
+      "reviewer_name": "Trần Thị B",
+      "created_at": "2025-01-01",
+      "rating": 4,
+      "auction_title": "MacBook Air M1",
+      "comment": "Giao hàng nhanh, sản phẩm đúng mô tả.",
+      "reply": null,
+      "reply_date": null
+    },
+    {
+      "reviewer_name": "Trần Thị B",
+      "created_at": "2025-01-01",
+      "rating": 4,
+      "auction_title": "MacBook Air M1",
+      "comment": "Giao hàng nhanh, sản phẩm đúng mô tả.",
+      "reply": null,
+      "reply_date": null
+    },
+    {
+      "reviewer_name": "Trần Thị B",
+      "created_at": "2025-01-01",
+      "rating": 4,
+      "auction_title": "MacBook Air M1",
+      "comment": "Giao hàng nhanh, sản phẩm đúng mô tả.",
+      "reply": null,
+      "reply_date": null
+    },
+    {
+      "reviewer_name": "Trần Thị B",
+      "created_at": "2025-01-01",
+      "rating": 4,
+      "auction_title": "MacBook Air M1",
+      "comment": "Giao hàng nhanh, sản phẩm đúng mô tả.",
+      "reply": null,
+      "reply_date": null
+    },
+    {
+      "reviewer_name": "Trần Thị B",
+      "created_at": "2025-01-01",
+      "rating": 4,
+      "auction_title": "MacBook Air M1",
+      "comment": "Giao hàng nhanh, sản phẩm đúng mô tả.",
+      "reply": null,
+      "reply_date": null
+    }
+  ],
+  "page": 1,
+  "limit": 2,
+  "hasMore": true
+}
+  );
+});
 app.use('/accounts', accountRouter);
 app.use('/products', productRouter);
 app.use('/seller',  sellerRouter);

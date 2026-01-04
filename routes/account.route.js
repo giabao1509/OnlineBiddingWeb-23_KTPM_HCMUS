@@ -331,6 +331,47 @@ router.post('/profile/upgrade_seller', isAuth, async (req, res) => {
     }
 });
 
+router.get('/external_profile/:id', isAuth,  async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 3;
+    const offset = (page - 1) * limit;
+    const userId = req.params.id;
+    const user = await accountService.getUserExternalInfo(Number(userId));
+    const userInfo = user[0];
+    let reviews = [];
+    if (userInfo) {
+
+        userInfo.rating_percent = Number(userInfo.rating_score) * 100;
+        //console.log('User rating score:', userInfo);
+        reviews = await accountService.getAllUserRatings(Number(userId), limit, offset);
+        reviews.forEach(r => {
+            r.rating = Number(r.rating);
+        });
+        //console.log('User fetched:', userInfo);
+        //console.log('Fetched reviews:', reviews);
+    }
+    res.render('Accounts/externalprofile', {
+        userInfo: userInfo,
+        reviews: reviews,
+        currentPage: page,
+        userNotFound: !userInfo
+    });
+});
+
+
+router.get('/external_profile/:id/reviews', isAuth, async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 3;
+    const offset = (page - 1) * limit;
+    const userId = req.params.id;
+
+    const reviews = await accountService.getAllUserRatings(userId, limit, offset);
+    console.log('Fetched reviews:', reviews);
+    res.json({
+    reviews,
+    hasMore: reviews.length === limit
+    });
+});
 
 
 
