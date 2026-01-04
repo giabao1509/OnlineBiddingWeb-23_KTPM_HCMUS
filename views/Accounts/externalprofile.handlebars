@@ -12,9 +12,11 @@
         <div class="card-body p-4">
           <div class="d-flex align-items-center">
             <!-- Avatar -->
-            <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center me-4 flex-shrink-0" style="width: 100px; height: 100px; font-size: 2.5rem;">
-              <i class="bi bi-person-fill"></i>
+            <div id="avatar"
+                class="rounded-circle text-white d-flex align-items-center justify-content-center me-4 flex-shrink-0 fw-bold"
+                style="width: 100px; height: 100px; font-size: 2.5rem;">
             </div>
+
 
             <div class="flex-grow-1">
               <h2 class="fw-bold mb-3">{{userInfo.full_name}}</h2>
@@ -161,6 +163,28 @@
 {{/section}}
 
 {{#section 'js'}}
+<script>
+  function stringToColor(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    const hue = Math.abs(hash) % 360;
+    return `hsl(${hue}, 65%, 50%)`;
+  }
+
+  function getInitial(name) {
+    return name?.trim()?.charAt(0)?.toUpperCase() || '?';
+  }
+
+  const fullName = "{{userInfo.full_name}}";
+  const avatar = document.getElementById('avatar');
+
+  avatar.textContent = getInitial(fullName);
+  avatar.style.backgroundColor = stringToColor(fullName);
+</script>
+
 <script>
     // Infinite Scroll Configuration
     const userId = '{{userInfo.id}}'; // Get from template
