@@ -1,6 +1,7 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import * as accountService from '../services/account.service.js';
+import * as upgradeRequestService from '../services/upgrade_request.service.js';
 import { verifyCaptcha, isAuth} from '../middlewares/auth.mdw.js';
 import { generateToken, generateOTPToken, verifyToken } from '../utils/jwt.js';
 import { sendOTPEmail, generateOTP } from '../utils/otp.js';
@@ -315,6 +316,20 @@ router.get('/profile', isAuth, (req, res) => {
     });
 });
 
+router.post('/profile/upgrade_seller', isAuth, async (req, res) => {
+    try {
+        await upgradeRequestService.createUpgradeRequest({
+            customer_id: req.user.id,
+        });
+        req.flash('success', 'Your account has been upgraded to Seller.');
+        res.redirect('/accounts/profile');
+    }
+    catch (err) {
+        console.error(err);
+        req.flash('error', 'An error occurred while upgrading your account. Please try again later.');
+        res.redirect('/accounts/profile');
+    }
+});
 
 
 

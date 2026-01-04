@@ -25,3 +25,7 @@ export function countAllUpgradeRequests() {
     .count('id as count')
     .first();
 }
+
+export function createUpgradeRequest(request) {
+    return db('upgrade_request').insert(request);
+}

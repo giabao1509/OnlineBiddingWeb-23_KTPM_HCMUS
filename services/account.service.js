@@ -61,3 +61,10 @@ export function countAllUsers() {
         .count('id as count')
         .first();
 }
+
+
+export function upgradeToSeller(customerId) {
+    return db('user_account')
+        .where('id', customerId)
+        .update({ role: 1 });
+}
