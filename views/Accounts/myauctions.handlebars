@@ -1,0 +1,344 @@
+<!-- Dashboard Page -->
+<div class="container py-5">
+  <!-- Page Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <h2 class="fw-bold mb-2">
+        <i class="bi bi-speedometer2 me-2 text-dark"></i>Dashboard
+      </h2>
+      <p class="text-secondary">Welcome back, {{user.name}}</p>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Main Content Area -->
+    <div class="col-lg-9">
+      <!-- Tabs Navigation -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-dark text-white border-0">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+           <ul class="nav nav-tabs border-0 mb-0">
+              <li class="nav-item">
+                <a class="nav-link {{#if (eq activeTab 'active-bids')}}active{{/if}}"
+                  href="/dashboard?tab=active-bids&page=1">
+                  <i class="bi bi-hammer me-2"></i>Active Bids
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a class="nav-link {{#if (eq activeTab 'won-auctions')}}active{{/if}}"
+                  href="/dashboard?tab=won-auctions&page=1">
+                  <i class="bi bi-trophy me-2"></i>Won Auctions
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a class="nav-link {{#if (eq activeTab 'watchlist')}}active{{/if}}"
+                  href="/dashboard?tab=watchlist&page=1">
+                  <i class="bi bi-heart-fill me-2"></i>Watchlist
+                </a>
+              </li>
+          </ul>
+          
+          <div class="flex-grow-1 ms-3" style="max-width: 300px;">
+            <div class="input-group input-group-sm">
+              <input type="text" class="form-control bg-white border-0" placeholder="Search items..." id="searchInput">
+              <button class="btn btn-light" type="button">
+                <i class="bi bi-search"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        </div>
+        <div class="card-body p-0">
+          <div class="tab-content" id="dashboardTabsContent">
+            <!-- Active Bids Tab -->
+            <div class="tab-pane fade show active" id="active-bids" role="tabpanel">
+              <div class="list-group list-group-flush">
+                {{#each activeBids}}
+                <a href="/auctions/{{this.id}}" class="list-group-item list-group-item-action border-0 border-bottom p-3">
+                  <div class="d-flex align-items-center">
+                    <img src="{{this.image}}" class="rounded me-3 shadow-sm" style="width:80px; height:80px; object-fit:cover;" alt="{{this.title}}">
+                    <div class="flex-grow-1">
+                      <h6 class="mb-2 fw-bold text-dark">{{this.title}}</h6>
+                      <div class="d-flex gap-3 small">
+                        <div>
+                          <span class="text-muted">Your bid:</span>
+                          <span class="text-primary fw-bold ms-1">{{this.yourBid}}</span>
+                        </div>
+                        <div>
+                          <span class="text-muted">Current:</span>
+                          <span class="text-success fw-bold ms-1">{{this.currentBid}}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <i class="bi bi-chevron-right text-muted fs-5"></i>
+                  </div>
+                </a>
+                {{else}}
+                <div class="text-center py-5">
+                  <i class="bi bi-inbox fs-1 text-muted opacity-50 d-block mb-3"></i>
+                  <p class="text-muted mb-0">No active bids</p>
+                </div>
+                {{/each}}
+              </div>
+              
+              {{#if activeBids}}
+              <!-- Pagination -->
+              <div class="d-flex justify-content-between align-items-center p-3 border-top">
+                <small class="text-muted">Showing 1-{{activeBids.length}} of {{pagination.totalActiveBids}}</small>
+                <nav>
+                  <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item disabled">
+                      <a class="page-link" href="#" tabindex="-1">Previous</a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                      <a class="page-link" href="#">Next</a>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+              {{/if}}
+            </div>
+
+            <!-- Won Auctions Tab -->
+            <div class="tab-pane fade" id="won-auctions" role="tabpanel">
+              <div class="list-group list-group-flush">
+                {{#each wonAuctions}}
+                <a href="/orders/{{this.orderId}}" class="list-group-item list-group-item-action border-0 border-bottom p-3">
+                  <div class="d-flex align-items-center">
+                    <img src="{{this.image}}" class="rounded me-3 shadow-sm" style="width:80px; height:80px; object-fit:cover;" alt="{{this.title}}">
+                    <div class="flex-grow-1">
+                      <h6 class="mb-2 fw-bold text-dark">{{this.title}}</h6>
+                      <div class="d-flex align-items-center gap-2">
+                        <span class="text-success fw-bold">{{this.winningBid}} VND</span>
+                        {{#if this.isPaid}}
+                        <span class="badge bg-success rounded-pill">
+                          <i class="bi bi-check-circle me-1"></i>Paid
+                        </span>
+                        {{else}}
+                        <span class="badge bg-warning rounded-pill">
+                          <i class="bi bi-clock me-1"></i>Pending
+                        </span>
+                        {{/if}}
+                      </div>
+                    </div>
+                    <i class="bi bi-chevron-right text-muted fs-5"></i>
+                  </div>
+                </a>
+                {{else}}
+                <div class="text-center py-5">
+                  <i class="bi bi-trophy fs-1 text-muted opacity-50 d-block mb-3"></i>
+                  <p class="text-muted mb-0">No won auctions yet</p>
+                </div>
+                {{/each}}
+              </div>
+
+              {{#if wonAuctions}}
+              <!-- Pagination -->
+              <div class="d-flex justify-content-between align-items-center p-3 border-top">
+                <small class="text-muted">Showing 1-{{wonAuctions.length}} of {{pagination.totalWonAuctions}}</small>
+                <nav>
+                  <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item disabled">
+                      <a class="page-link" href="#" tabindex="-1">Previous</a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item">
+                      <a class="page-link" href="#">Next</a>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+              {{/if}}
+            </div>
+
+            <!-- Watchlist Tab -->
+            <div class="tab-pane fade" id="watchlist" role="tabpanel">
+              <div class="list-group list-group-flush">
+                {{#each watchlist}}
+                <a href="/auctions/{{this.id}}" class="list-group-item list-group-item-action border-0 border-bottom p-3">
+                  <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                      <h6 class="mb-1 fw-bold text-dark">{{this.title}}</h6>
+                      <span class="text-success fw-bold">{{this.currentBid}} VND</span>
+                    </div>
+                    <i class="bi bi-chevron-right text-muted fs-5"></i>
+                  </div>
+                </a>
+                {{else}}
+                <div class="text-center py-5">
+                  <i class="bi bi-heart fs-1 text-muted opacity-50 d-block mb-3"></i>
+                  <p class="text-muted mb-0">No favorite items</p>
+                </div>
+                {{/each}}
+              </div>
+
+              {{#if watchlist}}
+              <!-- Pagination -->
+              <div class="d-flex justify-content-between align-items-center p-3 border-top">
+                <small class="text-muted">Showing 1-{{watchlist.length}} of {{pagination.totalWatchlist}}</small>
+                <nav>
+                  <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item disabled">
+                      <a class="page-link" href="#" tabindex="-1">Previous</a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item">
+                      <a class="page-link" href="#">Next</a>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+              {{/if}}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Sidebar - Quick Actions -->
+    <div class="col-lg-3">
+      <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
+        <div class="card-header bg-dark text-white border-0 py-3">
+          <h6 class="mb-0">
+            <i class="bi bi-lightning-fill me-2"></i>Quick Actions
+          </h6>
+        </div>
+        <div class="card-body">
+          <a href="/products" class="btn btn-dark w-100 mb-3">
+            <i class="bi bi-search me-2"></i>Browse Auctions
+          </a>
+          <a href="/accounts/profile" class="btn btn-outline-dark w-100 mb-3">
+            <i class="bi bi-person me-2"></i>My Profile
+          </a>
+          <a href="/orders" class="btn btn-outline-secondary w-100">
+            <i class="bi bi-box-seam me-2"></i>My Orders
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{{#section 'css'}}
+<style>
+  /* Tab Styles */
+  .nav-tabs {
+    flex-wrap: nowrap;
+  }
+
+  .nav-tabs .nav-link {
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    transition: all 0.2s ease;
+    padding: 0.75rem 1.25rem;
+    white-space: nowrap;
+  }
+
+  .nav-tabs .nav-link:hover {
+    color: rgba(255, 255, 255, 0.75);
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .nav-tabs .nav-link.active {
+    color: white !important;
+    background-color: rgba(255, 255, 255, 0.15);
+    border-bottom: 3px solid white;
+  }
+
+  /* List Item Hover */
+  .list-group-item-action:hover {
+    background-color: #f8f9fa;
+  }
+
+  /* Responsive Image */
+  @media (max-width: 576px) {
+    .list-group-item img {
+      width: 60px !important;
+      height: 60px !important;
+    }
+    
+    .input-group {
+      max-width: 100% !important;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .card-header .d-flex {
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .flex-grow-1 {
+      max-width: 100% !important;
+    }
+  }
+</style>
+{{/section}}
+
+{{#section 'js'}}
+<script>
+  // Initialize Bootstrap tabs
+  const triggerTabList = document.querySelectorAll('#dashboardTabs button');
+  triggerTabList.forEach(triggerEl => {
+    const tabTrigger = new bootstrap.Tab(triggerEl);
+    
+    triggerEl.addEventListener('click', event => {
+      event.preventDefault();
+      tabTrigger.show();
+    });
+  });
+
+  // Store active tab in localStorage
+  document.querySelectorAll('#dashboardTabs button').forEach(button => {
+    button.addEventListener('shown.bs.tab', event => {
+      localStorage.setItem('activeTab', event.target.id);
+    });
+  });
+
+  // Restore active tab on page load
+  window.addEventListener('DOMContentLoaded', () => {
+    const activeTab = localStorage.getItem('activeTab');
+    if (activeTab) {
+      const tabButton = document.getElementById(activeTab);
+      if (tabButton) {
+        const tab = new bootstrap.Tab(tabButton);
+        tab.show();
+      }
+    }
+  });
+
+  // Search functionality
+  const searchInput = document.getElementById('searchInput');
+  searchInput.addEventListener('input', (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    const activeTabPane = document.querySelector('.tab-pane.active');
+    const listItems = activeTabPane.querySelectorAll('.list-group-item-action');
+    
+    listItems.forEach(item => {
+      const title = item.querySelector('.fw-bold').textContent.toLowerCase();
+      if (title.includes(searchTerm)) {
+        item.style.display = '';
+      } else {
+        item.style.display = 'none';
+      }
+    });
+  });
+
+  // Clear search when switching tabs
+  document.querySelectorAll('#dashboardTabs button').forEach(button => {
+    button.addEventListener('shown.bs.tab', () => {
+      searchInput.value = '';
+      const allItems = document.querySelectorAll('.list-group-item-action');
+      allItems.forEach(item => item.style.display = '');
+    });
+  });
+</script>
+{{/section}}

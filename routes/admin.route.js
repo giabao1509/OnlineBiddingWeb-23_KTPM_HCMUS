@@ -36,6 +36,7 @@ router.get('/category', isAuth, isAdmin, async (req, res) => {
         isFirstPage,
         isLastPage,
         pages,
+        currentPage: page,
         totalPages
     });
 });
@@ -103,6 +104,7 @@ router.get('/auction', isAuth, isAdmin, async (req, res) => {
         isFirstPage,
         isLastPage,
         pages,
+        currentPage: page,
         totalPages
     });
 });
@@ -154,7 +156,7 @@ router.get('/users', isAuth, isAdmin, async (req, res) => {
     let users = [];
     let upgradeRequests = [];
     const page = parseInt(req.query.page) || 1;
-    const limit = 5;
+    const limit = 1;
     const offset = (page - 1) * limit;
     let totalPages = 1;
      if (tab === 'user') {
@@ -191,6 +193,7 @@ router.get('/users', isAuth, isAdmin, async (req, res) => {
         isFirstPage,
         isLastPage,
         pages,
+        currentPage: page,
         totalPages
     });
     

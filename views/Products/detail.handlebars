@@ -91,24 +91,24 @@
     border: none;
 }
 
-.nav-tabs .nav-link {
+.card-header.bg-dark .nav-tabs .nav-link {
     border: none;
-    color: #6c757d;
+    color: rgba(255, 255, 255, 0.5);
     font-weight: 500;
     border-bottom: 3px solid transparent;
     transition: all 0.3s ease;
     padding: 0.75rem 1.25rem;
 }
 
-.nav-tabs .nav-link:hover {
-    border-bottom-color: #adb5bd;
-    color: #495057;
+.card-header.bg-dark .nav-tabs .nav-link:hover {
+    color: rgba(255, 255, 255, 0.75);
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
-.nav-tabs .nav-link.active {
-    color: #212529;
-    border-bottom-color: #212529;
-    background: transparent;
+.card-header.bg-dark .nav-tabs .nav-link.active {
+    color: #fff !important;
+    background-color: rgba(255, 255, 255, 0.15);
+    border-bottom: 3px solid #fff;
 }
 
 /* Empty State */
@@ -455,22 +455,34 @@ document.addEventListener("DOMContentLoaded", function() {
                 <div class="card-header bg-dark text-white border-0">
                     <ul class="nav nav-tabs border-0" role="tablist">
                         <li class="nav-item">
-                            <a class="nav-link active text-white" data-bs-toggle="tab" href="#description">
+                            <a class="nav-link active text-white"
+                            data-bs-toggle="tab"
+                            href="#description"
+                            role="tab">
                                 <i class="bi bi-file-text me-2"></i>Description
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-white-50" data-bs-toggle="tab" href="#specifications">
+                            <a class="nav-link text-white-50"
+                            data-bs-toggle="tab"
+                            href="#specifications"
+                            role="tab">
                                 <i class="bi bi-list-check me-2"></i>Specifications
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-white-50" data-bs-toggle="tab" href="#bidHistory">
+                            <a class="nav-link text-white-50"
+                            data-bs-toggle="tab"
+                            href="#bidHistory"
+                            role="tab">
                                 <i class="bi bi-clock-history me-2"></i>Bid History
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-white-50" data-bs-toggle="tab" href="#comments">
+                            <a class="nav-link text-white-50"
+                            data-bs-toggle="tab"
+                            href="#comments"
+                            role="tab">
                                 <i class="bi bi-chat-dots me-2"></i>Comments ({{product.total_comments}})
                             </a>
                         </li>
