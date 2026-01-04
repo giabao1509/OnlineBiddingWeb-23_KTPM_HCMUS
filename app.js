@@ -11,6 +11,7 @@ import cookieParser from 'cookie-parser';
 import sellerRouter from './routes/seller.route.js';
 import buyerRouter from './routes/buyer.route.js';
 import adminRouter from './routes/admin.route.js';
+import orderRouter from './routes/order.route.js';
 import session from 'express-session';
 import flash from 'connect-flash';
 
@@ -171,6 +172,7 @@ app.use('/products', productRouter);
 app.use('/seller',  sellerRouter);
 app.use('/buyer',  buyerRouter);
 app.use('/admin',  adminRouter);
+app.use('/orders', orderRouter);
 
 app.listen(PORT, function () {
   console.log(`Server is running on http://localhost:${PORT}`);

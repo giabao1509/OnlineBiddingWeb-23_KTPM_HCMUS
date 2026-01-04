@@ -75,6 +75,16 @@ export function isSeller(req, res, next) {
     res.status(403).send('Access denied');
 }
 
+export function isBuyer(req, res, next) {
+    if (req.user && Number(req.user.role) === 0) return next();
+    res.status(403).send('Access denied');
+}
+
+export function isSellerOrAdmin(req, res, next) {
+    if (req.user && (Number(req.user.role) === 1 || Number(req.user.role) === 2)) return next();
+    res.status(403).send('Access denied');
+}
+
 export async function attachLayoutData(req, res, next) {
     // JWT
     const token = req.cookies.authToken;

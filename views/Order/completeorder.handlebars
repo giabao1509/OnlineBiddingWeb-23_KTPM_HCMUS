@@ -1,0 +1,722 @@
+{{#section 'css'}}
+
+<style>
+    body { background-color: #f5f5f5; }
+    .main-container { max-width: 1200px; margin: 2rem auto; }
+    .card { box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: none; }
+    .step-indicator { display: flex; justify-content: space-between; margin-bottom: 2rem; }
+    .step { flex: 1; text-align: center; position: relative; }
+    .step::before { content: ''; position: absolute; top: 20px; left: 0; right: 0; height: 2px; background: #dee2e6; z-index: -1; }
+    .step:first-child::before { left: 50%; }
+    .step:last-child::before { right: 50%; }
+    .step-circle { width: 40px; height: 40px; border-radius: 50%; background: #dee2e6; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 0.5rem; font-weight: bold; }
+    .step.active .step-circle { background: #0d6efd; color: white; }
+    .step.completed .step-circle { background: #198754; color: white; }
+    .chat-box { height: 400px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 8px; padding: 1rem; background: white; }
+    .message { margin-bottom: 1rem; }
+    .message.receiver { text-align: left; }
+    .message.sender { text-align: right; }
+    .message-bubble { display: inline-block; padding: 0.5rem 1rem; border-radius: 18px; max-width: 70%; }
+    .message.receiver .message-bubble { background: #e9ecef; }
+    .message.sender .message-bubble { background: #0d6efd; color: white; }
+    .rating-stars { font-size: 1.5rem; color: #ffc107; }
+  </style>
+{{/section}}
+
+{{#section 'js'}}
+<script>
+function openEditRatingModal(rating, comment) {
+    // set radio
+    document.getElementById('edit_positive').checked = rating === 1;
+    document.getElementById('edit_negative').checked = rating === -1;
+
+    // set comment
+    document.getElementById('editComment').value = comment || '';
+
+    // show modal
+    const modal = new bootstrap.Modal(
+        document.getElementById('editRatingModal')
+    );
+    modal.show();
+}
+</script>
+
+
+<script>
+const input = document.getElementById('paymentProof');
+const previewBox = document.getElementById('paymentPreview');
+const previewImg = document.getElementById('paymentPreviewImg');
+const removeBtn = document.getElementById('removePaymentImage');
+
+input.addEventListener('change', () => {
+    const file = input.files[0];
+    if (!file) return;
+
+    previewImg.src = URL.createObjectURL(file);
+    previewBox.classList.remove('d-none');
+});
+
+removeBtn.addEventListener('click', () => {
+    input.value = '';                 // clear file
+    previewImg.src = '';
+    previewBox.classList.add('d-none');
+});
+</script>
+
+
+<script>
+const shippingInput = document.getElementById('shippingProof');
+const shippingPreviewBox = document.getElementById('shippingPreview');
+const shippingPreviewImg = document.getElementById('shippingPreviewImg');
+const shippingremoveBtn = document.getElementById('removeShippingImage');
+
+shippingInput.addEventListener('change', () => {
+    const file = shippingInput.files[0];
+    if (!file) return;
+
+    shippingPreviewImg.src = URL.createObjectURL(file);
+    shippingPreviewBox.classList.remove('d-none');
+});
+
+shippingremoveBtn.addEventListener('click', () => {
+    shippingInput.value = '';                 // clear file
+    shippingPreviewImg.src = '';
+    shippingPreviewBox.classList.add('d-none');
+});
+</script>
+
+
+{{/section}}
+<!-- ========================== -->
+<!-- views/order-completion.hbs -->
+<!-- ========================== -->
+{{#if (eq order.status 'Cancelled')}}
+    <div class="alert alert-danger d-flex align-items-start gap-2">
+        <i class="bi bi-x-octagon-fill fs-4"></i>
+        <div>
+            <strong>Giao dịch đã bị huỷ</strong>
+            <div class="small mt-1">
+            Huỷ bởi: Người bán<br>
+            Lý do: {{order.orderRating.comment}}
+            </div>
+        </div>
+    </div>
+{{else}}
+<div class="row">
+  <!-- Thông tin sản phẩm -->
+  <div class="col-12 mb-4">
+    <div class="card">
+      <div class="card-body">
+        <div class="row align-items-center">
+          <div class="col-md-2">
+            <img src="{{order.image_url}}" alt="{{order.name}}" class="img-fluid rounded">
+          </div>
+          <div class="col-md-6">
+            <h5 class="mb-1">{{order.name}}</h5>
+            <p class="text-muted mb-0">Mã đơn: {{order.id}}</p>
+          </div>
+          <div class="col-md-4 text-end">
+            <h4 class="text-primary mb-0">{{format_currency order.final_price}}</h4>
+            <small class="text-muted">Kết thúc: {{formatFullDate order.end_time}}</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Thanh tiến trình -->
+  <div class="col-12 mb-4">
+    <div class="card">
+      <div class="card-body">
+        <h6 class="card-title mb-4">Tiến trình hoàn tất đơn hàng</h6>
+        <div class="step-indicator">
+          <div class="step {{#if (eq order.step 1)}}active{{/if}} {{#if (gte order.step 2)}}completed{{/if}}">
+            <div class="step-circle">1</div>
+            <div>Thanh toán</div>
+          </div>
+          <div class="step {{#if (eq order.step 2)}}active{{/if}} {{#if (gte order.step 3)}}completed{{/if}}">
+            <div class="step-circle">2</div>
+            <div>Vận chuyển</div>
+          </div>
+          <div class="step {{#if (eq order.step 3)}}active{{/if}} {{#if (eq order.step 4)}}completed{{/if}}">
+            <div class="step-circle">3</div>
+            <div>Nhận hàng</div>
+          </div>
+          <div class="step {{#if (gte order.step 4)}}active{{/if}} {{#if order.orderRating}}completed{{/if}}">
+            <div class="step-circle">4</div>
+            <div>Đánh giá</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nội dung chính -->
+    <div class="col-md-8">
+    <div class="card mb-4">
+        <div class="card-body">
+            <div>   
+                 {{#if (eq order.step 1)}}
+                    {{#if isOrderBuyer}}
+                    <div>
+                        <h5 class="mb-4">
+                            <i class="bi bi-1-circle-fill text-primary"></i>
+                            Bước 1: Cung cấp thông tin thanh toán
+                        </h5>
+
+                        <form id="paymentForm"
+                                action="/orders/{{order.id}}/payment"
+                                method="POST"
+                                enctype="multipart/form-data">
+
+                            <!-- Chứng từ thanh toán -->
+                            <div class="mb-3">
+                            <label class="form-label">Chứng từ thanh toán *</label>
+                            <input type="file"
+                                class="form-control"
+                                id="paymentProof"
+                                name="paymentProof"
+                                accept="image/*"
+                                required>
+
+                            <small class="text-muted">
+                                Upload ảnh chuyển khoản hoặc biên lai thanh toán
+                            </small>
+
+
+                            <!-- preview ảnh mới -->
+                            <div id="paymentPreview" class="mt-2 d-none">
+                                <img id="paymentPreviewImg"
+                                    class="img-thumbnail"
+                                    style="max-width:200px">
+
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-danger mt-2"
+                                        id="removePaymentImage">
+                                    Xoá ảnh
+                                </button>
+                            </div>
+                            </div>
+
+                            <!-- Địa chỉ -->
+                            <div class="mb-3">
+                            <label class="form-label">Địa chỉ nhận hàng *</label>
+                            <textarea class="form-control"
+                                        name="address"
+                                        rows="2"
+                                        required></textarea>
+                            </div>
+
+                            <!-- SĐT -->
+                            <div class="mb-3">
+                            <label class="form-label">Số điện thoại *</label>
+                            <input type="tel"
+                                    class="form-control"
+                                    name="phone"
+                                    value=""
+                                    required>
+                            </div>
+
+                            <!-- Ghi chú -->
+                            <div class="mb-3">
+                            <label class="form-label">Ghi chú (không bắt buộc)</label>
+                            <textarea class="form-control"
+                                        name="notes"
+                                        rows="2"></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i>
+                            Gửi thông tin thanh toán
+                            </button>
+                        </form>
+                    </div>
+
+                        
+                    {{else}}
+                        <h5 class="mb-4"><i class="bi bi-1-circle-fill text-primary"></i> Bước 1: Đang chờ người mua thanh toán</h5>
+                        <div class="alert alert-info">
+                        <i class="bi bi-clock-history"></i> Đang chờ người mua gửi thông tin thanh toán và địa chỉ nhận hàng.
+                        </div>
+
+                        <div class="card bg-light">
+                        <div class="card-body">
+                            <h6>Thông tin người mua:</h6>
+                            <p class="mb-1"><strong>{{bidderInfo.bidder_name}}</strong></p>
+                            <p class="mb-1">Đánh giá: ★ {{bidderInfo.rating_score}}</p>
+                            <p class="mb-0 text-muted small">{{bidderInfo.bidder_reviews}} lượt đánh giá</p>
+                        </div>
+                        </div>
+
+                    {{/if}}
+                {{/if}}
+            </div>
+       
+            <div> 
+                {{#if (eq order.step 2)}}
+                    {{#if isOrderSeller}}
+                        <h5 class="mb-4"><i class="bi bi-2-circle-fill text-primary"></i> Bước 2: Xác nhận thanh toán và gửi hàng</h5>
+
+                        <div class="alert alert-success mb-3">
+                        <i class="bi bi-check-circle"></i> Người mua đã gửi thông tin thanh toán
+                        </div>
+
+                        {{#if order.payment_proof}}
+                        <div class="mb-3">
+                        <label class="form-label">Chứng từ thanh toán:</label>
+                        <div>
+                            <img src="{{order.payment_proof}}" alt="Payment proof" class="img-fluid rounded" style="max-width: 300px;">
+                        </div>
+                        </div>
+                        {{/if}}
+
+                        {{#if order.payment_address}}
+                        <div class="card bg-light mb-3">
+                        <div class="card-body">
+                            <h6>Địa chỉ giao hàng:</h6>
+                            <p class="mb-1">{{order.payment_address}}</p>
+                            <p class="mb-1">SĐT: {{order.payment_phone}}</p>
+                            {{#if order.payment_notes}}
+                            <p class="mb-0 text-muted small">Ghi chú: {{order.payment_notes}}</p>
+                            {{/if}}
+                        </div>
+                        </div>
+                        {{/if}}
+
+                        <hr>
+                        <form id="shippingForm" method="post" action="/orders/{{order.id}}/confirm_delivery" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label class="form-label">Hóa đơn vận chuyển</label>
+                            <input type="file"
+                                class="form-control"
+                                id="shippingProof"
+                                name="shippingProof"
+                                accept="image/*"
+                                required>
+
+                            <small class="text-muted">
+                                Upload ảnh hóa đơn vận chuyển
+                            </small>
+
+
+                            <!-- preview ảnh mới -->
+                            <div id="shippingPreview" class="mt-2 d-none">
+                                <img id="shippingPreviewImg"
+                                    class="img-thumbnail"
+                                    style="max-width:200px">
+
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-danger mt-2"
+                                        id="removeShippingImage">
+                                    Xoá ảnh
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-truck"></i> Xác nhận đã gửi hàng
+                        </button>
+                        </form>
+                    {{else}}
+                    <h5 class="mb-4"><i class="bi bi-2-circle-fill text-primary"></i> Bước 2: Đang chờ người bán gửi hàng</h5>
+                        <div class="alert alert-success mb-3">
+                        <i class="bi bi-check-circle"></i> Đã gửi thông tin thanh toán thành công
+                        </div>
+                        {{#if order.payment_address}}
+                        <div class="card bg-light mb-3">
+                        <div class="card-body">
+                            <h6>Địa chỉ giao hàng của bạn:</h6>
+                            <p class="mb-1">{{order.payment_address}}</p>
+                            <p class="mb-0">SĐT: {{order.payment_phone}}</p>
+                        </div>
+                        </div>
+                        {{/if}}
+                        <div class="alert alert-info">
+                        <i class="bi bi-clock-history"></i> Đang chờ người bán xác nhận đã nhận tiền và gửi hóa đơn vận chuyển.
+                        </div>
+                    {{/if}}
+                {{/if}}
+            </div>
+        
+            <div>
+                {{#if (eq order.step 3)}}
+                    {{#if isOrderBuyer}}
+                        <h5 class="mb-4"><i class="bi bi-3-circle-fill text-primary"></i> Bước 3: Xác nhận đã nhận hàng</h5>
+
+                        <div class="alert alert-success mb-3">
+                        <i class="bi bi-truck"></i> Người bán đã gửi hàng
+                        </div>
+
+                        {{#if order.shipping_proof}}
+                        <div class="mb-3">
+                        <label class="form-label">Hóa đơn vận chuyển:</label>
+                        <div>
+                            <img src="{{order.shipping_proof}}" alt="Shipping invoice" class="img-fluid rounded" style="max-width: 300px;">
+                        </div>
+                        <small class="text-muted">Gửi lúc: {{formatFullDate order.shipping_updated_at}}</small>
+                        </div>
+                        {{/if}}
+
+                        <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> Vui lòng kiểm tra kỹ hàng hóa trước khi xác nhận đã nhận
+                        </div>
+
+                        <form id="receiveForm" method="post" action="/orders/{{order.id}}/confirm_received">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" name="confirmCheck" id="confirmCheck" required>
+                                <label class="form-check-label" for="confirmCheck">
+                                Tôi xác nhận đã nhận được hàng và sản phẩm đúng như mô tả
+                                </label>
+                            </div>
+
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-box-seam"></i> Xác nhận đã nhận hàng
+                            </button>
+                        </form>
+                    {{else}}
+                        <h5 class="mb-4"><i class="bi bi-3-circle-fill text-primary"></i> Bước 3: Đang chờ người mua nhận hàng</h5>
+
+                        <div class="alert alert-success mb-3">
+                        <i class="bi bi-check-circle"></i> Đã gửi hóa đơn vận chuyển thành công
+                        </div>
+
+                        {{#if order.shipping_proof}}
+                        <div class="mb-3">
+                        <label class="form-label">Hóa đơn vận chuyển đã gửi:</label>
+                        <div>
+                            <img src="{{order.shipping_proof}}" alt="Shipping invoice" class="img-fluid rounded" style="max-width: 300px;">
+                        </div>
+                        <small class="text-muted">Gửi lúc: {{formatFullDate order.shipping_updated_at}}</small>
+                        </div>
+                        {{/if}}
+
+                        <div class="alert alert-info">
+                        <i class="bi bi-clock-history"></i> Đang chờ người mua xác nhận đã nhận hàng.
+                        </div>
+                    {{/if}}
+                {{/if}}
+            </div>
+        
+            <div> 
+                {{#if (eq order.step 4)}}
+                    <h5 class="mb-4"><i class="bi bi-4-circle-fill text-success"></i> Bước 4: Đánh giá giao dịch</h5>
+                        <div class="alert alert-success mb-4">
+                        <i class="bi bi-check-circle"></i> Giao dịch hoàn tất! Vui lòng đánh giá để giúp cải thiện trải nghiệm.
+                        </div>
+                        {{#if isOrderBuyer}}
+                            {{#if order.orderRating}}
+                                <div class="card bg-light mb-3">
+                                <div class="card-body">
+                                    <h6>Đánh giá của bạn cho người bán:</h6>
+                                    <div class="rating-stars mb-2">
+                                    {{#if ( eq order.orderRating.rating 1)}}★★★★★ Tích cực{{/if}}
+                                    {{#if ( eq order.orderRating.rating -1)}}★☆☆☆☆ Tiêu cực{{/if}}
+                                    </div>
+                                    <p class="mb-1">{{order.orderRating.comment}}</p>
+                                    <small class="text-muted">{{formatFullDate order.orderRating.created_at}}</small>
+                                    <hr>
+                                    <button class="btn btn-sm btn-outline-primary"
+                                            onclick="openEditRatingModal(
+                                                {{order.orderRating.rating}},
+                                                `{{order.orderRating.comment}}`)">
+                                        <i class="bi bi-pencil"></i> Chỉnh sửa đánh giá
+                                    </button>
+                                </div>
+                                </div>
+                            {{else}}
+                                <form id="ratingForm" method="post" action="/orders/{{order.id}}/rate">
+                                <input type="hidden" name="auction_id" value="{{order.auction_id}}">
+                                <input type="hidden" name="reviewer" value="{{order.winner_bidder_id}}">
+                                <input type="hidden" name="reviewee" value="{{order.seller_id}}">
+                                <div class="mb-3">
+                                    <label class="form-label">Đánh giá người bán *</label>
+                                    <div class="btn-group w-100" role="group">
+                                    <input type="radio" class="btn-check" name="rating" id="positive" value="1" required>
+                                    <label class="btn btn-outline-success" for="positive">
+                                        <i class="bi bi-hand-thumbs-up"></i> Tích cực (+1)
+                                    </label>
+
+                                    <input type="radio" class="btn-check" name="rating" id="negative" value="-1" required>
+                                    <label class="btn btn-outline-danger" for="negative">
+                                        <i class="bi bi-hand-thumbs-down"></i> Tiêu cực (-1)
+                                    </label>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Nhận xét *</label>
+                                    <textarea class="form-control" name="comment" id="comment" rows="3" placeholder="Chia sẻ trải nghiệm của bạn..." required></textarea>
+                                    <small class="text-muted">Tối thiểu 10 ký tự</small>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-send"></i> Gửi đánh giá
+                                </button>
+                                </form>
+                            {{/if }}
+                        {{else}}
+                            {{#if order.orderRating}}
+                                <div class="card bg-light mb-3">
+                                <div class="card-body">
+                                    <h6>Đánh giá của bạn cho người mua:</h6>
+                                    <div class="rating-stars mb-2">
+                                    {{#if ( eq order.orderRating.rating 1)}}★★★★★ Tích cực{{/if}}
+                                    {{#if ( eq order.orderRating.rating -1)}}★☆☆☆☆ Tiêu cực{{/if}}
+                                    </div>
+                                    <p class="mb-1">{{order.orderRating.comment}}</p>
+                                    <small class="text-muted">{{formatFullDate order.orderRating.created_at}}</small>
+                                    <hr>    
+                                    <button class="btn btn-sm btn-outline-primary"
+                                            onclick="openEditRatingModal(
+                                                {{order.orderRating.rating}},
+                                                `{{order.orderRating.comment}}`
+                                            )">
+                                        <i class="bi bi-pencil"></i> Chỉnh sửa đánh giá
+                                    </button>
+
+                                </div>
+                                </div>
+                            {{else}}
+                                <form id="ratingForm" method="post" action="/orders/{{order.id}}/rate">
+                                <input type="hidden" name="auction_id" value="{{order.auction_id}}">
+                                <input type="hidden" name="reviewer" value="{{order.seller_id}}">
+                                <input type="hidden" name="reviewee" value="{{order.winner_bidder_id}}">
+                                <div class="mb-3">
+                                    <label class="form-label">Đánh giá người mua</label>
+                                    <div class="btn-group w-100" role="group">
+                                    <input type="radio" class="btn-check" name="rating" id="positive" value="1" required>
+                                    <label class="btn btn-outline-success" for="positive">
+                                        <i class="bi bi-hand-thumbs-up"></i> Tích cực (+1)
+                                    </label>
+
+                                    <input type="radio" class="btn-check" name="rating" id="negative" value="-1" required>
+                                    <label class="btn btn-outline-danger" for="negative">
+                                        <i class="bi bi-hand-thumbs-down"></i> Tiêu cực (-1)
+                                    </label>
+                                    </div>
+                                </div>
+
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Nhận xét *</label>
+                                    <textarea class="form-control" name="comment" id="comment" rows="3" placeholder="Chia sẻ trải nghiệm của bạn..." required></textarea>
+                                    <small class="text-muted">Tối thiểu 10 ký tự</small>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-send"></i> Gửi đánh giá
+                                </button>
+                                </form>
+                            {{/if }}
+                        {{/if}}
+                    {{/if}}
+            </div>
+
+        </div>
+    </div>
+
+    {{#if isOrderSeller}}
+        <div class="card border-danger">
+            <div class="card-body">
+                <h6 class="card-title text-danger">Huỷ giao dịch</h6>
+                <p class="small text-muted">
+                Bạn có thể huỷ giao dịch nếu người mua không đáp ứng yêu cầu
+                </p>
+
+                <button
+                type="button"
+                class="btn btn-danger btn-sm"
+                data-bs-toggle="modal"
+                data-bs-target="#cancelOrderModal">
+                <i class="bi bi-x-circle"></i> Huỷ giao dịch
+                </button>
+            </div>
+        </div>
+    {{/if}}
+</div>
+
+    
+
+
+  <!-- Chat box -->
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <i class="bi bi-chat-dots"></i> Trò chuyện với {{#if isOrderBuyer}}người bán{{else}}người mua{{/if}}
+      </div>
+      <div class="card-body p-0">
+        <div class="chat-box" id="chatBox">
+          {{#each formattedMessages}}
+          <div class="message {{sender}}">
+            <div class="message-bubble">
+              <div>{{content}}</div>
+              <small class="text-muted" style="font-size: 0.75rem;">{{formatFullDate created_at}}</small>
+            </div>
+          </div>
+          {{/each}}
+        </div>
+        <div class="p-3 border-top">
+          <form id="chatForm" method="post" action="/orders/{{order.id}}/send_message">
+            <div class="input-group">
+              <input type="text" class="form-control" name="content" id="content" placeholder="Nhập tin nhắn..." required>
+              <button class="btn btn-primary" type="submit">
+                <i class="bi bi-send"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Thông tin bên kia -->
+    <div class="card mt-3">
+      <div class="card-body">
+        <h6 class="card-title">{{#if isOrderSeller}}Người mua{{else}}Người bán{{/if}}</h6>
+        <p class="mb-1"><strong>{{#if isOrderSeller}} {{bidderInfo.bidder_name}} {{else}} {{sellerInfo.seller_name}} {{/if}}</strong></p>
+        <div class="rating-stars mb-1">
+          {{#if isOrderSeller}}
+            ★ {{bidderInfo.rating_score}}
+          {{else}}
+            ★ {{sellerInfo.rating_score}}
+          {{/if}}
+        </div>
+        <small class="text-muted">
+          {{#if isOrderSeller}}
+            {{bidderInfo.bidder_reviews}} lượt đánh giá
+          {{else}}
+            {{sellerInfo.seller_reviews}} lượt đánh giá
+          {{/if}}
+        </small>
+      </div>
+    </div>
+  </div>
+</div>
+{{/if}}
+
+
+<div class="modal fade" id="editRatingModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" action="/orders/{{order.id}}/update_rate">
+        <div class="modal-header">
+          <h5 class="modal-title">Chỉnh sửa đánh giá</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <!-- hidden -->
+          <input type="hidden" name="reviewer" value="{{order.orderRating.reviewer_id}}">
+          <input type="hidden" name="reviewee" value="{{order.orderRating.reviewee_id}}">
+
+          <!-- rating -->
+          <div class="mb-3">
+            <label class="form-label">Đánh giá người mua</label>
+            <div class="btn-group w-100">
+              <input type="radio" class="btn-check" name="rating" id="edit_positive" value="1">
+              <label class="btn btn-outline-success" for="edit_positive">
+                👍 Tích cực (+1)
+              </label>
+
+              <input type="radio" class="btn-check" name="rating" id="edit_negative" value="-1">
+              <label class="btn btn-outline-danger" for="edit_negative">
+                👎 Tiêu cực (-1)
+              </label>
+            </div>
+          </div>
+
+          <!-- comment -->
+          <div class="mb-3">
+            <label class="form-label">Nhận xét</label>
+            <textarea class="form-control"
+                      name="comment"
+                      id="editComment"
+                      rows="3"
+                      required></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button"
+                  class="btn btn-secondary"
+                  data-bs-dismiss="modal">
+            Huỷ
+          </button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save"></i> Cập nhật
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <form
+        method="POST"
+        action="/orders/{{order.id}}/cancel">
+        <input type="hidden" name="reviewee" value="{{order.winner_bidder_id}}">
+        <input type="hidden" name="reviewer" value="{{order.seller_id}}">
+        <!-- Header -->
+        <div class="modal-header border-0">
+          <h5 class="modal-title text-danger">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            Xác nhận huỷ giao dịch
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body">
+          <p>
+            Bạn có chắc chắn muốn <strong class="text-danger">huỷ giao dịch</strong> này không?
+          </p>
+
+          <div class="alert alert-warning small">
+            <ul class="mb-0">
+              <li>Giao dịch sẽ bị đóng vĩnh viễn</li>
+              <li>Người mua sẽ bị đánh giá <strong>-1 điểm</strong></li>
+              <li>Hành động này <strong>không thể hoàn tác</strong></li>
+            </ul>
+          </div>
+
+          <!-- Lý do huỷ (khuyên dùng) -->
+          <div class="mb-2">
+            <label class="form-label small">
+              Lý do huỷ (không bắt buộc)
+            </label>
+            <textarea
+              name="cancel_reason"
+              class="form-control"
+              rows="2"
+              placeholder="Người thắng không thanh toán"></textarea>
+          </div>
+
+        <!-- Footer -->
+        <div class="modal-footer border-0">
+          <button
+            type="button"
+            class="btn btn-outline-secondary btn-sm"
+            data-bs-dismiss="modal">
+            Quay lại
+          </button>
+
+          <button
+            type="submit"
+            class="btn btn-danger btn-sm">
+            <i class="bi bi-x-circle"></i> Xác nhận huỷ
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+</div>
+
+
+

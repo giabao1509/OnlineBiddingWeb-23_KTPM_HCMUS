@@ -22,6 +22,31 @@
     .rating-stars { font-size: 1.5rem; color: #ffc107; }
   </style>
 {{/section}}
+
+{{#section 'js'}}
+<script>
+const input = document.getElementById('paymentProof');
+const previewBox = document.getElementById('paymentPreview');
+const previewImg = document.getElementById('paymentPreviewImg');
+const removeBtn = document.getElementById('removePaymentImage');
+
+input.addEventListener('change', () => {
+    const file = input.files[0];
+    if (!file) return;
+
+    previewImg.src = URL.createObjectURL(file);
+    previewBox.classList.remove('d-none');
+});
+
+removeBtn.addEventListener('click', () => {
+    input.value = '';                 // clear file
+    previewImg.src = '';
+    previewBox.classList.add('d-none');
+});
+</script>
+
+
+{{/section}}
 <!-- ========================== -->
 <!-- views/product-ended.hbs -->
 <!-- ========================== -->
@@ -94,36 +119,81 @@
     <div class="card mb-4">
       <div class="card-body">
         {{#if (eq order.step 1)}}
-          {{#if isBuyer}}
+          {{#if isOrderBuyer}}
           <div>
-                <h5 class="mb-4"><i class="bi bi-1-circle-fill text-primary"></i> Bước 1: Cung cấp thông tin thanh toán</h5>
-                <form id="paymentForm" onsubmit="submitPayment(event)">
+            <h5 class="mb-4">
+                <i class="bi bi-1-circle-fill text-primary"></i>
+                Bước 1: Cung cấp thông tin thanh toán
+            </h5>
+
+            <form id="paymentForm"
+                    action="/api/order/{{order.id}}/payment"
+                    method="POST"
+                    enctype="multipart/form-data">
+
+                <!-- Chứng từ thanh toán -->
                 <div class="mb-3">
-                    <label class="form-label">Chứng từ thanh toán *</label>
-                    <input type="file" class="form-control" id="paymentProof" accept="image/*" required>
-                    <small class="text-muted">Upload ảnh chuyển khoản hoặc biên lai thanh toán</small>
+                <label class="form-label">Chứng từ thanh toán *</label>
+                <input type="file"
+                    class="form-control"
+                    id="paymentProof"
+                    name="paymentProof"
+                    accept="image/*"
+                    required>
+
+                <small class="text-muted">
+                    Upload ảnh chuyển khoản hoặc biên lai thanh toán
+                </small>
+
+
+                <!-- preview ảnh mới -->
+                <div id="paymentPreview" class="mt-2 d-none">
+                    <img id="paymentPreviewImg"
+                        class="img-thumbnail"
+                        style="max-width:200px">
+
+                    <button type="button"
+                            class="btn btn-sm btn-outline-danger mt-2"
+                            id="removePaymentImage">
+                        Xoá ảnh
+                    </button>
+                </div>
                 </div>
 
+                <!-- Địa chỉ -->
                 <div class="mb-3">
-                    <label class="form-label">Địa chỉ nhận hàng *</label>
-                    <textarea class="form-control" id="address" rows="2" placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố" required></textarea>
+                <label class="form-label">Địa chỉ nhận hàng *</label>
+                <textarea class="form-control"
+                            name="address"
+                            rows="2"
+                            required>{{payment.address}}</textarea>
                 </div>
 
+                <!-- SĐT -->
                 <div class="mb-3">
-                    <label class="form-label">Số điện thoại *</label>
-                    <input type="tel" class="form-control" id="phone" placeholder="0912345678" required>
+                <label class="form-label">Số điện thoại *</label>
+                <input type="tel"
+                        class="form-control"
+                        name="phone"
+                        value="{{payment.phone}}"
+                        required>
                 </div>
 
+                <!-- Ghi chú -->
                 <div class="mb-3">
-                    <label class="form-label">Ghi chú (không bắt buộc)</label>
-                    <textarea class="form-control" id="notes" rows="2" placeholder="Ghi chú cho người bán..."></textarea>
+                <label class="form-label">Ghi chú (không bắt buộc)</label>
+                <textarea class="form-control"
+                            name="notes"
+                            rows="2">{{payment.notes}}</textarea>
                 </div>
 
                 <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-check-circle"></i> Gửi thông tin thanh toán
+                <i class="bi bi-check-circle"></i>
+                Gửi thông tin thanh toán
                 </button>
-                </form>
-          </div>
+            </form>
+            </div>
+
             
           {{else}}
             <h5 class="mb-4"><i class="bi bi-1-circle-fill text-primary"></i> Bước 1: Đang chờ người mua thanh toán</h5>
@@ -136,7 +206,7 @@
                 <h6>Thông tin người mua:</h6>
                 <p class="mb-1"><strong>{{buyer.name}}</strong></p>
                 <p class="mb-1">Đánh giá: ★ {{buyer.rating}}</p>
-                <p class="mb-0 text-muted small">{{buyer.totalTransactions}} giao dịch</p>
+                <p class="mb-0 text-muted small">{{buyer.totalTransactions}} lượt đánh giá</p>
             </div>
             </div>
 
@@ -144,7 +214,7 @@
         {{/if}}
 
         {{#if (eq order.step 2)}}
-          {{#if isSeller}}
+          {{#if isOrderSeller}}
             <h5 class="mb-4"><i class="bi bi-2-circle-fill text-primary"></i> Bước 2: Xác nhận thanh toán và gửi hàng</h5>
 
             <div class="alert alert-success mb-3">
@@ -174,7 +244,6 @@
             {{/if}}
 
             <hr>
-
             <form id="shippingForm" onsubmit="submitShipping(event)">
             <div class="mb-3">
                 <label class="form-label">Đơn vị vận chuyển *</label>
@@ -203,7 +272,7 @@
         {{/if}}
 
         {{#if (eq order.step 3)}}
-          {{#if isBuyer}}
+          {{#if isOrderBuyer}}
             {{> step3-buyer}}
           {{else}}
             {{> step3-seller}}
@@ -211,12 +280,12 @@
         {{/if}}
 
         {{#if (eq order.step 4)}}
-          {{> step4-rating isBuyer=isBuyer isSeller=isSeller order=order}}
+          {{> step4-rating isOrderBuyer=isOrderBuyer isOrderSeller=isOrderSeller order=order}}
         {{/if}}
       </div>
     </div>
 
-    {{#if isSeller}}
+    {{#if isOrderSeller}}
     <div class="card border-danger">
       <div class="card-body">
         <h6 class="card-title text-danger">Huỷ giao dịch</h6>
@@ -233,7 +302,7 @@
   <div class="col-md-4">
     <div class="card">
       <div class="card-header bg-primary text-white">
-        <i class="bi bi-chat-dots"></i> Trò chuyện với {{#if isBuyer}}người bán{{else}}người mua{{/if}}
+        <i class="bi bi-chat-dots"></i> Trò chuyện với {{#if isOrderBuyer}}người bán{{else}}người mua{{/if}}
       </div>
       <div class="card-body p-0">
         <div class="chat-box" id="chatBox">
@@ -262,17 +331,17 @@
     <!-- Thông tin bên kia -->
     <div class="card mt-3">
       <div class="card-body">
-        <h6 class="card-title">{{#if isBuyer}}Người bán{{else}}Người mua{{/if}}</h6>
-        <p class="mb-1"><strong>{{#if isBuyer}}{{seller.name}}{{else}}{{buyer.name}}{{/if}}</strong></p>
+        <h6 class="card-title">{{#if isOrderBuyer}}Người bán{{else}}Người mua{{/if}}</h6>
+        <p class="mb-1"><strong>{{#if isOrderBuyer}}{{seller.name}}{{else}}{{buyer.name}}{{/if}}</strong></p>
         <div class="rating-stars mb-1">
-          {{#if isBuyer}}
+          {{#if isOrderBuyer}}
             ★ {{seller.rating}}
           {{else}}
             ★ {{buyer.rating}}
           {{/if}}
         </div>
         <small class="text-muted">
-          {{#if isBuyer}}
+          {{#if isOrderBuyer}}
             {{seller.totalTransactions}} giao dịch
           {{else}}
             {{buyer.totalTransactions}} giao dịch
