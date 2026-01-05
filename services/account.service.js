@@ -102,3 +102,10 @@ export function getAllUserRatings(userId, limit, offset) {
     .limit(limit)
     .offset(offset);
 }
+
+export function getAccountRoleById(id) {
+    return db('user_account')
+        .where('id', id)
+        .select('role')
+        .first();
+}

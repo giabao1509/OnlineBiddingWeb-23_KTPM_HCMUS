@@ -37,7 +37,7 @@
                     <i class="bi bi-heart-fill me-2"></i>Watchlist
                   </a>
                 </li>
-              {{#unless isBuyer}}
+              {{#if isSellerUpdated}}
                 <!-- Seller Tabs -->
                 <li class="nav-item">
                   <a class="nav-link {{#if (eq activeTab 'active')}}active{{/if}}"
@@ -51,7 +51,7 @@
                     <i class="bi bi-check-circle me-2"></i>Sold Items
                   </a>
                 </li>
-              {{/unless}}
+              {{/if}}
             </ul>
           </div>
         </div>
@@ -65,17 +65,17 @@
                 {{#each biddingItems}}
                 <a href="/products/detail/{{this.auction_id}}" class="list-group-item list-group-item-action border-0 border-bottom p-3">
                     <div class="d-flex align-items-center">
-                    <img src="{{this.image}}" class="rounded me-3 shadow-sm" style="width:80px; height:80px; object-fit:cover;" alt="{{this.title}}">
+                    <img src="{{this.image}}" class="rounded me-3 shadow-sm" style="width:80px; height:80px; object-fit:cover;" alt="{{this.name}}">
                     <div class="flex-grow-1">
-                        <h6 class="mb-2 fw-bold text-dark">{{this.title}}</h6>
+                        <h6 class="mb-2 fw-bold text-dark">{{this.name}}</h6>
                         <div class="d-flex gap-3 small">
                         <div>
                             <span class="text-muted">Your bid:</span>
-                            <span class="text-primary fw-bold ms-1">{{this.yourBid}}</span>
+                            <span class="text-primary fw-bold ms-1">{{format_currency this.yourbid}}</span>
                         </div>
                         <div>
                             <span class="text-muted">Current:</span>
-                            <span class="text-success fw-bold ms-1">{{this.currentBid}}</span>
+                            <span class="text-success fw-bold ms-1">{{format_currency this.currentBid}}</span>
                         </div>
                         </div>
                         <div class="mt-2">
@@ -105,6 +105,7 @@
                 <div class="card-footer bg-white border-top py-3">
                 <div class="d-flex justify-content-between align-items-center">
                     <small class="text-muted">Showing page {{currentPage}} of {{totalPages}}</small>
+                    {{#if (gt totalPages 1)}}
                     <nav>
                     <ul class="pagination pagination-sm mb-0">
                         <li class="page-item {{#if isFirstPage}}disabled{{/if}}">
@@ -124,6 +125,7 @@
                         </li>
                     </ul>
                     </nav>
+                    {{/if}}
                 </div>
                 </div>
                 {{/if}}
@@ -133,22 +135,14 @@
                 {{#if (eq activeTab 'won')}}
                 <div class="list-group list-group-flush">
                 {{#each wonAuctions}}
-                <a href="/orders/{{this.orderId}}" class="list-group-item list-group-item-action border-0 border-bottom p-3">
+                <a href="/orders/{{this.order_id}}" class="list-group-item list-group-item-action border-0 border-bottom p-3">
                     <div class="d-flex align-items-center">
-                    <img src="{{this.image}}" class="rounded me-3 shadow-sm" style="width:80px; height:80px; object-fit:cover;" alt="{{this.title}}">
+                    <img src="{{this.image_url}}" class="rounded me-3 shadow-sm" style="width:80px; height:80px; object-fit:cover;" alt="{{this.name}}">
                     <div class="flex-grow-1">
-                        <h6 class="mb-2 fw-bold text-dark">{{this.title}}</h6>
+                        <h6 class="mb-2 fw-bold text-dark">{{this.name}}</h6>
                         <div class="d-flex align-items-center gap-2">
-                        <span class="text-success fw-bold">{{this.winningBid}}</span>
-                        {{#if this.isPaid}}
-                        <span class="badge bg-success rounded-pill">
-                            <i class="bi bi-check-circle me-1"></i>Paid
-                        </span>
-                        {{else}}
-                        <span class="badge bg-warning rounded-pill">
-                            <i class="bi bi-clock me-1"></i>Pending Payment
-                        </span>
-                        {{/if}}
+                        <span class="text-success fw-bold">{{format_currency this.current_price}}</span>
+
                         </div>
                     </div>
                     <i class="bi bi-chevron-right text-muted fs-5"></i>
@@ -166,76 +160,21 @@
                 <div class="card-footer bg-white border-top py-3">
                 <div class="d-flex justify-content-between align-items-center">
                     <small class="text-muted">Showing page {{currentPage}} of {{totalPages}}</small>
-                    <nav>
-                    <ul class="pagination pagination-sm mb-0">
-                        <li class="page-item {{#if isFirstPage}}disabled{{/if}}">
-                        <a class="page-link" href="/dashboard?tab=won&page={{prevPage}}">
-                            <i class="bi bi-chevron-left"></i>
-                        </a>
-                        </li>
-                        {{#each pages}}
-                        <li class="page-item {{#if active}}active{{/if}}">
-                        <a class="page-link" href="/dashboard?tab=won&page={{number}}">{{number}}</a>
-                        </li>
-                        {{/each}}
-                        <li class="page-item {{#if isLastPage}}disabled{{/if}}">
-                        <a class="page-link" href="/dashboard?tab=won&page={{nextPage}}">
-                            <i class="bi bi-chevron-right"></i>
-                        </a>
-                        </li>
-                    </ul>
-                    </nav>
-                </div>
-                </div>
-                {{/if}}
-                {{/if}}
-
-                <!-- Watchlist Tab -->
-                {{#if (eq activeTab 'watchlist')}}
-                <div class="list-group list-group-flush">
-                {{#each watchlist}}
-                <a href="/products/detail/{{this.auction_id}}" class="list-group-item list-group-item-action border-0 border-bottom p-3">
-                    <div class="d-flex align-items-center">
-                    <img src="{{this.image_url}}" class="rounded me-3 shadow-sm" style="width:80px; height:80px; object-fit:cover;" alt="{{this.name}}">
-                    <div class="flex-grow-1">
-                        <h6 class="mb-1 fw-bold text-dark">{{this.name}}</h6>
-                        <span class="text-success fw-bold">{{#if (gt current_price 0)}} {{format_currency this.current_price}} {{else}} {{format_currency this.starting_price}} {{/if}}</span>
-                        <div class="mt-2">
-                        <small class="text-muted">
-                            <i class="bi bi-clock me-1"></i>Ends: {{formatFullDate this.end_time}}
-                        </small>
-                        </div>
-                    </div>
-                    <i class="bi bi-chevron-right text-muted fs-5"></i>
-                    </div>
-                </a>
-                {{else}}
-                <div class="text-center py-5">
-                    <i class="bi bi-heart fs-1 text-muted opacity-50 d-block mb-3"></i>
-                    <p class="text-muted mb-0">No favorite items</p>
-                </div>
-                {{/each}}
-                </div>
-
-                {{#if watchlist}}
-                <div class="card-footer bg-white border-top py-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <small class="text-muted">Showing page {{currentPage}} of {{totalPages}}</small>
                     {{#if (gt totalPages 1)}}
                     <nav>
                     <ul class="pagination pagination-sm mb-0">
                         <li class="page-item {{#if isFirstPage}}disabled{{/if}}">
-                        <a class="page-link" href="/dashboard?tab=watchlist&page={{prevPage}}">
+                        <a class="page-link" href="/accounts/my_auctions?tab=won&page={{prevPage}}">
                             <i class="bi bi-chevron-left"></i>
                         </a>
                         </li>
                         {{#each pages}}
                         <li class="page-item {{#if active}}active{{/if}}">
-                        <a class="page-link" href="/dashboard?tab=watchlist&page={{number}}">{{number}}</a>
+                        <a class="page-link" href="/accounts/my_auctions?tab=won&page={{number}}">{{number}}</a>
                         </li>
                         {{/each}}
                         <li class="page-item {{#if isLastPage}}disabled{{/if}}">
-                        <a class="page-link" href="/dashboard?tab=watchlist&page={{nextPage}}">
+                        <a class="page-link" href="/accounts/my_auctions?tab=won&page={{nextPage}}">
                             <i class="bi bi-chevron-right"></i>
                         </a>
                         </li>
@@ -247,7 +186,85 @@
                 {{/if}}
                 {{/if}}
 
-            {{#unless isBuyer}}
+                <!-- Watchlist Tab -->
+                {{#if (eq activeTab 'watchlist')}}
+                <div class="list-group list-group-flush">
+                    {{#each watchlist}}
+                    <div class="list-group-item border-0 border-bottom p-3 position-relative watchlist-item">
+                        <a href="/products/detail/{{this.auction_id}}" class="text-decoration-none d-block">
+                            <div class="d-flex align-items-center">
+                                <img src="{{this.image_url}}" class="rounded me-3 shadow-sm" style="width:80px; height:80px; object-fit:cover;" alt="{{this.name}}">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1 fw-bold text-dark">{{this.name}}</h6>
+                                    <span class="text-success fw-bold">
+                                        {{#if (gt current_price 0)}} 
+                                            {{format_currency this.current_price}} 
+                                        {{else}} 
+                                            {{format_currency this.starting_price}} 
+                                        {{/if}}
+                                    </span>
+                                    <div class="mt-2">
+                                        <small class="text-muted">
+                                            <i class="bi bi-clock me-1"></i>Ends: {{formatFullDate this.end_time}}
+                                        </small>
+                                    </div>
+                                </div>
+                                <i class="bi bi-chevron-right text-muted fs-5 me-3"></i>
+                            </div>
+                        </a>
+                        <form method="POST" action="/accounts/remove_watchlist" class="d-inline">
+                            <input type="hidden" name="auction_id" value="{{this.auction_id}}">
+                            <button
+                            type="submit"
+                            class="btn btn-sm btn-outline-danger remove-watchlist-btn position-absolute"
+                            data-auction-id="{{this.auction_id}}"
+                            title="Remove from watchlist"
+                            style="top: 12px; right: 12px; width: 32px; height: 32px; padding: 0; border-radius: 50%;"
+                            >
+                            <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+
+                        
+                    </div>
+                    {{else}}
+                    <div class="text-center py-5">
+                        <i class="bi bi-heart fs-1 text-muted opacity-50 d-block mb-3"></i>
+                        <p class="text-muted mb-0">No favorite items</p>
+                    </div>
+                    {{/each}}
+                </div>
+                {{#if watchlist}}
+                <div class="card-footer bg-white border-top py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">Showing page {{currentPage}} of {{totalPages}}</small>
+                    {{#if (gt totalPages 1)}}
+                    <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item {{#if isFirstPage}}disabled{{/if}}">
+                        <a class="page-link" href="/accounts/my_auctions?tab=watchlist&page={{prevPage}}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                        </li>
+                        {{#each pages}}
+                        <li class="page-item {{#if active}}active{{/if}}">
+                        <a class="page-link" href="/accounts/my_auctions?tab=watchlist&page={{number}}">{{number}}</a>
+                        </li>
+                        {{/each}}
+                        <li class="page-item {{#if isLastPage}}disabled{{/if}}">
+                        <a class="page-link" href="/accounts/my_auctions?tab=watchlist&page={{nextPage}}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                        </li>
+                    </ul>
+                    </nav>
+                    {{/if}}
+                </div>
+                </div>
+                {{/if}}
+                {{/if}}
+
+            {{#if isSellerUpdated}}
             <!-- SELLER TABS CONTENT -->
             
             <!-- Active Auctions Tab -->
@@ -293,17 +310,17 @@
                 <nav>
                   <ul class="pagination pagination-sm mb-0">
                     <li class="page-item {{#if isFirstPage}}disabled{{/if}}">
-                      <a class="page-link" href="/dashboard?tab=active&page={{prevPage}}">
+                      <a class="page-link" href="/accounts/my_auctions?tab=active&page={{prevPage}}">
                         <i class="bi bi-chevron-left"></i>
                       </a>
                     </li>
                     {{#each pages}}
                     <li class="page-item {{#if active}}active{{/if}}">
-                      <a class="page-link" href="/dashboard?tab=active&page={{number}}">{{number}}</a>
+                      <a class="page-link" href="/accounts/my_auctions?tab=active&page={{number}}">{{number}}</a>
                     </li>
                     {{/each}}
                     <li class="page-item {{#if isLastPage}}disabled{{/if}}">
-                      <a class="page-link" href="/dashboard?tab=active&page={{nextPage}}">
+                      <a class="page-link" href="/accounts/my_auctions?tab=active&page={{nextPage}}">
                         <i class="bi bi-chevron-right"></i>
                       </a>
                     </li>
@@ -379,7 +396,7 @@
             </div>
             {{/if}}
             {{/if}}
-         {{/unless}}
+         {{/if}}
         </div>
       </div>
     </div>
@@ -477,23 +494,33 @@
     }
   }
 </style>
-{{/section}}
 
-{{#section 'js'}}
-<script>
-  const searchInput = document.getElementById('searchInput');
-  searchInput.addEventListener('input', (e) => {
-    const searchTerm = e.target.value.toLowerCase();
-    const listItems = document.querySelectorAll('.list-group-item-action');
-    
-    listItems.forEach(item => {
-      const title = item.querySelector('.fw-bold')?.textContent.toLowerCase();
-      if (title && title.includes(searchTerm)) {
-        item.style.display = '';
-      } else {
-        item.style.display = 'none';
-      }
-    });
-  });
-</script>
+<style>
+.watchlist-item {
+    transition: background-color 0.2s ease;
+}
+
+.watchlist-item:hover {
+    background-color: #f8f9fa;
+}
+
+.remove-watchlist-btn {
+    opacity: 0;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.watchlist-item:hover .remove-watchlist-btn {
+    opacity: 1;
+}
+
+.remove-watchlist-btn:hover {
+    background-color: #dc3545;
+    color: white;
+    border-color: #dc3545;
+    transform: scale(1.1);
+}
+</style>
 {{/section}}

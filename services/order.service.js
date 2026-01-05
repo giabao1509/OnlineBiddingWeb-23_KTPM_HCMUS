@@ -12,7 +12,7 @@ import db from '../utils/db.js';
 export function getOrderDetailsById(orderId) {
     return db('orders as o')
         .join('auction as a', 'a.auction_id', 'o.auction_id')
-        .join('auction_images as ae', function() {  
+        .leftJoin('auction_images as ae', function() {  
             this.on('ae.auction_id', '=', 'a.auction_id').andOn('ae.is_thumbnail', '=', db.raw('TRUE'));
         })
         .select(

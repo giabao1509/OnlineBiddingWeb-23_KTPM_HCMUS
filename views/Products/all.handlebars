@@ -199,14 +199,14 @@
 
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <small class="text-muted">Starting Price</small>
-                                    <span class="text-success fw-bold">{{this.starting_price}} VND</span>
+                                    <small class="text-muted">Current Price</small>
+                                    <span class="text-success fw-bold">{{#if (gt current_price 0)}} {{format_currency this.current_price}} {{else}} {{format_currency this.starting_price}} {{/if}}</span>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <small class="text-muted">
                                         <i class="bi bi-clock me-1"></i>Ends
                                     </small>
-                                    <small class="text-danger fw-semibold">{{this.end_time}}</small>
+                                    <small class="text-danger fw-semibold">{{formatFullDate this.end_time}}</small>
                                 </div>
                             </div>
 

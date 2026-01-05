@@ -13,11 +13,14 @@ import buyerRouter from './routes/buyer.route.js';
 import adminRouter from './routes/admin.route.js';
 import orderRouter from './routes/order.route.js';
 import session from 'express-session';
+import { startAuctionUpdater } from './utils/cron.js';
 import flash from 'connect-flash';
 
 
 const PORT = process.env.PORT || 3000;
 const app = express();
+
+startAuctionUpdater();
 
 app.use(session({
   secret: process.env.SESSION_SECRET_KEY,

@@ -93,7 +93,7 @@ router.get('/detail/:id', async (req, res) => {
   }
 
   const relatedProducts = await productsService.getAllRelatedProducts(auctionID, Number(product.category_id));
-  console.log('Related products:', relatedProducts);
+  //console.log('Related products:', relatedProducts);
   //console.log(product);
   if (!product) {
     return res.status(404).render('404');
@@ -219,7 +219,8 @@ router.post('/detail/:id/description/edit', isAuth, async (req, res) => {
 });
 
 router.post('/detail/:id/bid', isAuth, async (req, res) => {
-    const { max_bid } = req.body
+    const { max_bid, max_bid_display } = req.body
+    console.log('Max bid (raw):', max_bid);
     const auction_id = req.params.id;
     const bidder_id = req.user.id;
     const bid = {

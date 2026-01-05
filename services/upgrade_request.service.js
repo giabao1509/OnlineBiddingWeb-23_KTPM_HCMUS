@@ -29,3 +29,10 @@ export function countAllUpgradeRequests() {
 export function createUpgradeRequest(request) {
     return db('upgrade_request').insert(request);
 }
+
+
+export function getUpgradeRequestByCustomerId(customerId) {
+    return db('upgrade_request')
+        .where('customer_id', customerId)
+        .first();
+}

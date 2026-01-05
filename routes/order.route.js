@@ -7,14 +7,9 @@ import uploadOrder from '../utils/uploadOrder.js';
 const router = express.Router();
 
 router.get('/:id', isAuth, async (req, res) => {
-    const orderId = req.params.id;
-    
-    //console.log('orderId:', orderId);
-    //console.log('req.user:', req.user);
-    // Lấy thông tin đơn hàng từ database (giả sử có hàm getOrderById)
+    const orderId = Number(req.params.id);
     const order = await orderService.getOrderDetailsById(orderId);
-
-    if (order.status === 'Cancelled') {
+    if (order?.status === 'Cancelled') {
         const orderRating = await orderService.getOrderRating(orderId, order.seller_id);
         order.orderRating = orderRating;
         return res.render('Order/completeorder', {

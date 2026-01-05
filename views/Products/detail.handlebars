@@ -231,6 +231,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     displayInput.value = formatCurrency(initialBid);
+    hiddenInput.value = initialBid; // <--- gán hidden input ban đầu
 
     displayInput.addEventListener('input', function() {
         const caret = displayInput.selectionStart;
@@ -239,8 +240,6 @@ document.addEventListener("DOMContentLoaded", function() {
         displayInput.setSelectionRange(caret, caret);
         hiddenInput.value = numeric;
     });
-
-   
 });
 </script>
 

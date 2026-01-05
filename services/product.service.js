@@ -16,7 +16,7 @@ export function getAllProducts(limit, offset) {
 
 export function getAllRelatedProducts(auction_id, category_id) {
     return db('auction as a')
-    .join('auction_images as ai', 'ai.auction_id', 'a.auction_id')
+    .leftJoin('auction_images as ai', 'ai.auction_id', 'a.auction_id')
     .join('categories as c', 'c.id', 'a.category_id')
     .whereNot('a.auction_id', auction_id)
     .where('a.category_id', category_id)
@@ -211,19 +211,91 @@ export function updateProductDescription(auction_id, newDescription) {
         .update({ description: newDescription });
 }
 
-export function getWatchListByUserId(user_id) {
+export function getWatchListByUserId(user_id, limit, offset) {
     return db('watch_list as wl')
     .join('auction as a', 'a.auction_id', 'wl.auction_id')
     .leftJoin('auction_images as ai', function() {
         this.on('ai.auction_id', '=', 'a.auction_id').andOn('ai.is_thumbnail', '=', db.raw('true'));
     })
     .where('wl.user_id', user_id)
-    .select('a.*', 'ai.image_url');
+    .select('a.*', 'ai.image_url')
+    .limit(limit)
+    .offset(offset)
+    .orderBy('wl.created_at', 'desc');
 }
 
 export function countAllWatchListItems(user_id) {
     return db('watch_list')
     .where('user_id', user_id)
     .count('id as count')
+    .first();
+}
+
+export function getWonAuctionsByUserId(user_id, limit, offset) {
+    return db('auction as a')
+    .leftJoin('auction_images as ai', function() {
+        this.on('ai.auction_id', '=', 'a.auction_id').andOn('ai.is_thumbnail', '=', db.raw('true'));
+    })
+    .join('orders as o', 'o.auction_id', 'a.auction_id')
+    .where('a.winner_bidder_id', user_id)
+    .andWhere('a.status', 'Completed')
+    .select('a.*', 'ai.image_url', 'o.id as order_id')
+    .limit(limit)
+    .offset(offset)
+    .orderBy('a.end_time', 'desc');
+}
+
+export function countAllWonAuctions(user_id) {
+    return db('auction as a')
+    .join('orders as o', 'o.auction_id', 'a.auction_id')
+    .where('a.winner_bidder_id', user_id)
+    .andWhere('a.status', 'Completed')
+    .count('a.auction_id as count')
+    .first();
+}
+
+
+export function getBiddingAuctionsByUserId(userId, limit, offset) {
+    return db('auction as a')
+        .join('auction_bids as ab', 'ab.auction_id', 'a.auction_id')
+        .leftJoin('auction_images as ai', function () {
+            this.on('ai.auction_id', '=', 'a.auction_id')
+                .andOn('ai.is_thumbnail', '=', db.raw('true'));
+        })
+        .where('ab.bidder_id', userId)
+        .andWhere('a.status', 'Bidding')
+        .select(
+            'a.auction_id',
+            'a.name',
+            'a.current_price as currentBid',
+            'ai.image_url as image',
+            db.raw('MAX(ab.amount) as yourBid'),
+            db.raw(`
+                CASE 
+                    WHEN ? = a.winner_bidder_id THEN true
+                    ELSE false
+                END as "isWinning"
+            `, [userId]),
+            db.raw('MAX(ab.created_at) as last_bid_time')
+        )
+        .groupBy(
+            'a.auction_id',
+            'a.name',
+            'a.current_price',
+            'ai.image_url'
+        )
+        .orderByRaw('last_bid_time DESC')
+        .limit(limit)
+        .offset(offset);
+}
+
+
+
+export function countAllBiddingAuctions(user_id) {
+    return db('auction as a')
+    .join('auction_bids as ab', 'ab.auction_id', 'a.auction_id')
+    .where('ab.bidder_id', user_id)
+    .andWhere('a.status', 'Bidding')
+    .countDistinct('a.auction_id as count')
     .first();
 }

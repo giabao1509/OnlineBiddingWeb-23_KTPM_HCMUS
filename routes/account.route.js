@@ -379,8 +379,47 @@ router.get('/my_auctions', isAuth, async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = 5;
     const offset = (page - 1) * limit;
+    const role = await accountService.getAccountRoleById(req.user.id);
+    const isSellerUpdated = Number(role.role) === 1;
+    let totalProducts;
+    
+    let biddingItems = [];
+    if (activeTab === 'bidding') {
+        totalProducts = await productsService.countAllBiddingAuctions(req.user.id);
+        biddingItems = await productsService.getBiddingAuctionsByUserId(req.user.id, limit, offset);
+        biddingItems.forEach(item => {
+            item.yourbid = item.yourbid ? Number(item.yourbid) : 0;
+            item.currentBid = item.currentBid ? Number(item.currentBid) : 0;
+        });
+        console.log('Bidding items:', biddingItems);
+    }
 
-    const totalProducts = await productsService.countAllWatchListItems(req.user.id);
+    let watchlist = [];
+    if (activeTab === 'watchlist') {
+        totalProducts = await productsService.countAllWatchListItems(req.user.id);
+        watchlist = await productsService.getWatchListByUserId(req.user.id, limit, offset);
+        console.log('Watchlist items:', watchlist);
+    }
+
+    let wonAuctions = [];
+    if (activeTab === 'won') {
+        totalProducts = await productsService.countAllWonAuctions(req.user.id);
+        wonAuctions = await productsService.getWonAuctionsByUserId(req.user.id, limit, offset);
+        console.log('Won auctions:', wonAuctions);
+    }
+
+    
+    let activeAuctions = [];
+    if (activeTab === 'active' && isSellerUpdated) {
+        totalProducts = await productsService.countAllActiveAuctionsBySellerId(req.user.id);
+        activeAuctions = await productsService.getActiveAuctionsBySellerId(req.user.id, limit, offset);
+        console.log('Active auctions:', activeAuctions);
+    }
+    
+    if (!totalProducts) {
+        totalProducts = { count: 0 };
+    }
+
     const totalPages = Math.ceil(Number(totalProducts.count) / limit);
     const prevPage = page > 1 ? page - 1 : 1;
     const nextPage = page < totalPages ? page + 1 : totalPages;
@@ -392,11 +431,13 @@ router.get('/my_auctions', isAuth, async (req, res) => {
         pages.push({ number: i, active: i === page });
     }
 
-    const watchlist = await productsService.getWatchListByUserId(req.user.id, limit, offset);
-    console.log('Watchlist items:', watchlist);
+
     res.render('Accounts/myauctions', {
         activeTab,
+        biddingItems,
         watchlist,
+        wonAuctions,
+        isSellerUpdated,
         currentPage: page,
         totalPages,
         prevPage,

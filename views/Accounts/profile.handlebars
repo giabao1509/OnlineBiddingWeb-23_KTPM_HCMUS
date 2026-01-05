@@ -13,6 +13,42 @@
   <div class="row g-4">
     <!-- Left Column - Profile Information -->
     <div class="col-lg-8">
+      <!-- User Avatar & Rating Card -->
+      <a href="/accounts/external_profile/{{user.id}}" class="text-decoration-none text-dark">
+      <!-- User Avatar & Rating Card -->
+      <div class="card border-0 shadow-sm mb-4 avatar-card profile-hover-card">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center">
+            <!-- Avatar -->
+            <div id="avatar"
+                class="rounded-circle text-white d-flex align-items-center justify-content-center me-4 flex-shrink-0 fw-bold"
+                style="width: 100px; height: 100px; font-size: 2.5rem;">
+            </div>
+
+            <div class="flex-grow-1">
+              <h2 class="fw-bold mb-3">{{user.full_name}}</h2>
+
+              <div class="d-flex flex-wrap gap-3 align-items-center">
+                <!-- Joined Date -->
+                <div class="d-flex align-items-center text-muted">
+                  <i class="bi bi-calendar-check me-2"></i>
+                  <span>Joined {{user.created_at}}</span>
+                </div>
+
+                <!-- Rating Percentage -->
+                <div class="d-flex align-items-center">
+                  <i class="bi bi-shield-check me-2 {{#if (gte user.rating_percent 80)}}text-success{{else if (gte user.rating_percent 50)}}text-warning{{else}}text-danger{{/if}}"></i>
+                  <span class="badge {{#if (gte user.rating_percent 80)}}bg-success{{else if (gte user.rating_percent 50)}}bg-warning{{else}}bg-danger{{/if}} rounded-pill px-3 py-2 fs-6">
+                    {{user.rating_percent}}%
+                  </span>
+                  <span class="text-muted ms-2 small">({{user.total_reviews}} reviews)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </a>
       <!-- Profile Information Card -->
       <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-dark text-white border-0 py-3">
@@ -244,9 +280,6 @@
 
 {{#section 'css'}}
 <style>
-  .card {
-    transition: all 0.2s ease;
-  }
 
   .form-control:focus {
     border-color: #212529;
@@ -278,10 +311,45 @@
     align-items: center;
     justify-content: center;
   }
+
+  /* Avatar glow effect */
+  .profile-hover-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .profile-hover-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  }
 </style>
+
+
+
 {{/section}}
 
 {{#section 'js'}}
+<script>
+  function stringToColor(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    const hue = Math.abs(hash) % 360;
+    return `hsl(${hue}, 65%, 50%)`;
+  }
+
+  function getInitial(name) {
+    return name?.trim()?.charAt(0)?.toUpperCase() || '?';
+  }
+
+  const fullName = "{{user.full_name}}";
+  const avatar = document.getElementById('avatar');
+
+  avatar.textContent = getInitial(fullName);
+  avatar.style.backgroundColor = stringToColor(fullName);
+</script>
+
 <script>
   const editBtn = document.getElementById('editProfileBtn');
   const cancelBtn = document.getElementById('cancelEditBtn');
