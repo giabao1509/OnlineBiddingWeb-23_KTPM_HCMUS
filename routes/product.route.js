@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
 
 
     const page = parseInt(req.query.page) || 1;
-    const limit = 2;
+    const limit = 8;
     const offset = (page - 1) * limit;
     
     let products;
@@ -79,6 +79,8 @@ router.get('/', async (req, res) => {
     nextPage,
     isFirstPage,
     isLastPage,
+    currentPage: page,
+    totalPages
     });
 });
 
@@ -90,6 +92,8 @@ router.get('/detail/:id', async (req, res) => {
     product.isOwner = Number(res.locals.user.id) === product.seller_id;
   }
 
+  const relatedProducts = await productsService.getAllRelatedProducts(auctionID, Number(product.category_id));
+  console.log('Related products:', relatedProducts);
   //console.log(product);
   if (!product) {
     return res.status(404).render('404');
@@ -191,7 +195,7 @@ router.get('/detail/:id', async (req, res) => {
   const total_comments = await productsService.countProductComments(auctionID);
   product.total_comments = total_comments?.count || 0;
 
-  res.render('Products/detail', { product });
+  res.render('Products/detail', { product, relatedProducts });
 });
 
 router.post('/detail/:id/description/edit', isAuth, async (req, res) => {
@@ -276,6 +280,9 @@ router.post('/detail/:id/comments/create', isAuth, async (req, res) => {
     const retUrl = req.headers.referer || '/';
     res.redirect(retUrl);
 });
+
+
+
 
 
 export default router

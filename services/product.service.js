@@ -14,6 +14,16 @@ export function getAllProducts(limit, offset) {
     return db('auction').limit(limit).offset(offset);
 }
 
+export function getAllRelatedProducts(auction_id, category_id) {
+    return db('auction as a')
+    .join('auction_images as ai', 'ai.auction_id', 'a.auction_id')
+    .join('categories as c', 'c.id', 'a.category_id')
+    .whereNot('a.auction_id', auction_id)
+    .where('a.category_id', category_id)
+    .andWhere('ai.is_thumbnail', true)
+    .limit(5);
+}
+
 export function getAllProductsPhotos(ids) {
     return db('auction_images').whereIn('auction_id', ids)
 }
@@ -199,4 +209,21 @@ export function updateProductDescription(auction_id, newDescription) {
     return db('auction')
         .where('auction_id', auction_id)
         .update({ description: newDescription });
+}
+
+export function getWatchListByUserId(user_id) {
+    return db('watch_list as wl')
+    .join('auction as a', 'a.auction_id', 'wl.auction_id')
+    .leftJoin('auction_images as ai', function() {
+        this.on('ai.auction_id', '=', 'a.auction_id').andOn('ai.is_thumbnail', '=', db.raw('true'));
+    })
+    .where('wl.user_id', user_id)
+    .select('a.*', 'ai.image_url');
+}
+
+export function countAllWatchListItems(user_id) {
+    return db('watch_list')
+    .where('user_id', user_id)
+    .count('id as count')
+    .first();
 }

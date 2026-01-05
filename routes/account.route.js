@@ -1,6 +1,7 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import * as accountService from '../services/account.service.js';
+import * as productsService from '../services/product.service.js';
 import * as upgradeRequestService from '../services/upgrade_request.service.js';
 import { verifyCaptcha, isAuth} from '../middlewares/auth.mdw.js';
 import { generateToken, generateOTPToken, verifyToken } from '../utils/jwt.js';
@@ -370,6 +371,39 @@ router.get('/external_profile/:id/reviews', isAuth, async (req, res) => {
     res.json({
     reviews,
     hasMore: reviews.length === limit
+    });
+});
+
+router.get('/my_auctions', isAuth, async (req, res) => {
+    const activeTab = req.query.tab || 'bidding';
+    const page = parseInt(req.query.page) || 1;
+    const limit = 5;
+    const offset = (page - 1) * limit;
+
+    const totalProducts = await productsService.countAllWatchListItems(req.user.id);
+    const totalPages = Math.ceil(Number(totalProducts.count) / limit);
+    const prevPage = page > 1 ? page - 1 : 1;
+    const nextPage = page < totalPages ? page + 1 : totalPages;
+    const isFirstPage = page === 1;
+    const isLastPage = page === totalPages;
+    
+    const pages = [];
+    for (let i = 1; i <= totalPages; i++) {
+        pages.push({ number: i, active: i === page });
+    }
+
+    const watchlist = await productsService.getWatchListByUserId(req.user.id, limit, offset);
+    console.log('Watchlist items:', watchlist);
+    res.render('Accounts/myauctions', {
+        activeTab,
+        watchlist,
+        currentPage: page,
+        totalPages,
+        prevPage,
+        nextPage,
+        isFirstPage,
+        isLastPage,
+        pages
     });
 });
 
