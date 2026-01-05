@@ -166,6 +166,16 @@
     overflow: hidden;
     border-radius: 8px 8px 0 0;
 }
+
+/* Avatar glow effect */
+  .profile-hover-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .profile-hover-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  }
 </style>
 {{/section}}
 
@@ -350,7 +360,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     <span class="badge bg-dark fs-6 px-3 py-2 mb-3">{{product.cat_name}}</span>
                     <h1 class="h3 mb-4 fw-bold">{{product.name}}</h1>
 
-                    <div class="seller-card p-3 mb-4">
+                    <div class="seller-card p-3 mb-4 profile-hover-card">
                         <div class="d-flex align-items-center">
                             <div id="avatar"
                                 class="rounded-circle text-white d-flex align-items-center justify-content-center me-4 flex-shrink-0 fw-bold"
@@ -430,10 +440,17 @@ document.addEventListener("DOMContentLoaded", function() {
                     {{else}}
                         {{#if user}}
                         <div class="d-grid gap-2 mb-3">
-                            <button class="btn btn-bid btn-dark btn-lg" type="button" data-bs-toggle="collapse" data-bs-target="#bidForm">
+                            <button class="btn btn-dark btn-lg" type="button" data-bs-toggle="collapse" data-bs-target="#bidForm">
                                 <i class="bi bi-hammer me-2"></i>Place Bid
                             </button>
-                            <button class="btn btn-outline-danger">
+                            
+                            {{#if product.buy_now_price}}
+                            <button class="btn btn-success btn-lg" type="button" data-bs-toggle="modal" data-bs-target="#buyNowModal">
+                                <i class="bi bi-lightning-fill me-2"></i>Buy Now
+                            </button>
+                            {{/if}}
+                            
+                            <button class="btn btn-outline-danger btn-lg">
                                 <i class="bi bi-heart me-2"></i>Add to Watchlist
                             </button>
                         </div>
@@ -779,6 +796,73 @@ document.addEventListener("DOMContentLoaded", function() {
                     <button type="submit" class="btn btn-dark">Save</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Buy Now Modal -->
+<div class="modal fade" id="buyNowModal" tabindex="-1" aria-labelledby="buyNowModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+
+            <form action="/products/detail/{{product.auction_id}}/buy_now" method="POST">
+                <!-- Header -->
+                <div class="modal-header bg-success text-white border-0">
+                    <h5 class="modal-title" id="buyNowModalLabel">
+                        <i class="bi bi-lightning-fill me-2"></i>Buy Now Confirmation
+                    </h5>
+                    <button type="button"
+                            class="btn-close btn-close-white"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                </div>
+
+                <!-- Body -->
+                <div class="modal-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3"
+                             style="width: 80px; height: 80px;">
+                            <i class="bi bi-lightning-fill text-success" style="font-size: 2.5rem;"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">{{product.name}}</h5>
+                    </div>
+
+                    <div class="alert alert-light border mb-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Buy Now Price:</span>
+                            <span class="text-success fw-bold fs-4">
+                                {{format_currency product.buy_now_price}} VNĐ
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning border-warning d-flex align-items-start">
+                        <i class="bi bi-exclamation-triangle-fill text-warning me-2 mt-1"></i>
+                        <div>
+                            <strong>Important:</strong>
+                            <p class="mb-0 small">
+                                By clicking "Confirm Purchase", you agree to buy this item immediately at the Buy Now price.
+                                This action cannot be undone and the auction will end.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-lightning-fill me-2"></i>Confirm Purchase
+                    </button>
+                </div>
+
+            </form>
+            <!-- END FORM -->
+
         </div>
     </div>
 </div>

@@ -299,3 +299,63 @@ export function countAllBiddingAuctions(user_id) {
     .countDistinct('a.auction_id as count')
     .first();
 }
+
+
+export function getActiveAuctionsBySellerId(seller_id, limit, offset) {
+    return db('auction as a')
+    .leftJoin('auction_images as ai', function() {
+        this.on('ai.auction_id', '=', 'a.auction_id').andOn('ai.is_thumbnail', '=', db.raw('true'));
+    })
+    .leftJoin('auction_bids as ab', 'ab.auction_id', 'a.auction_id')
+    .where('a.seller_id', seller_id)
+    .andWhere('a.status', 'Bidding')
+    .select(
+      'a.*', 
+      'ai.image_url', 
+      db.raw(`(
+        SELECT COUNT(*)
+        FROM auction_bids ab
+        WHERE ab.auction_id = a.auction_id
+      ) as total_bids`)
+      )
+    .limit(limit)
+    .offset(offset)
+    .orderBy('a.created_at', 'desc');
+}
+
+export function countAllActiveAuctionsBySeller(seller_id) {
+    return db('auction')
+    .where('seller_id', seller_id)
+    .andWhere('status', 'Bidding')
+    .count('auction_id as count')
+    .first();
+}
+
+export function getSoldItemsBySellerId(seller_id, limit, offset) {
+    return db('auction as a')
+    .leftJoin('auction_images as ai', function() {
+        this.on('ai.auction_id', '=', 'a.auction_id').andOn('ai.is_thumbnail', '=', db.raw('true'));
+    })
+    .join('user_account as u', 'u.id', 'a.winner_bidder_id')
+    .where('a.seller_id', seller_id)
+    .andWhere('a.status', 'Completed')
+    .select('a.*', 'ai.image_url', 'u.full_name as buyer_name')
+    .limit(limit)
+    .offset(offset)
+    .orderBy('a.end_time', 'desc');
+}
+
+export function countAllSoldItemsBySeller(seller_id) {
+    return db('auction')
+    .where('seller_id', seller_id)
+    .andWhere('status', 'Completed')
+    .count('auction_id as count')
+    .first();
+}
+
+export function removeFromWatchList(user_id, auction_id) {
+    return db('watch_list')
+    .where('user_id', user_id)
+    .andWhere('auction_id', auction_id)
+    .del();
+}

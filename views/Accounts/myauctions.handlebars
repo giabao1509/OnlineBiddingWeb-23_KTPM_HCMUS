@@ -47,7 +47,7 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link {{#if (eq activeTab 'sold')}}active{{/if}}"
-                     href="/accounts/my-auctions?tab=sold&page=1">
+                     href="/accounts/my_auctions?tab=sold&page=1">
                     <i class="bi bi-check-circle me-2"></i>Sold Items
                   </a>
                 </li>
@@ -109,17 +109,17 @@
                     <nav>
                     <ul class="pagination pagination-sm mb-0">
                         <li class="page-item {{#if isFirstPage}}disabled{{/if}}">
-                        <a class="page-link" href="/dashboard?tab=bidding&page={{prevPage}}">
+                        <a class="page-link" href="/accounts/my_auctions?tab=bidding&page={{prevPage}}">
                             <i class="bi bi-chevron-left"></i>
                         </a>
                         </li>
                         {{#each pages}}
                         <li class="page-item {{#if active}}active{{/if}}">
-                        <a class="page-link" href="/dashboard?tab=bidding&page={{number}}">{{number}}</a>
+                        <a class="page-link" href="/accounts/my_auctions?tab=bidding&page={{number}}">{{number}}</a>
                         </li>
                         {{/each}}
                         <li class="page-item {{#if isLastPage}}disabled{{/if}}">
-                        <a class="page-link" href="/dashboard?tab=bidding&page={{nextPage}}">
+                        <a class="page-link" href="/accounts/my_auctions?tab=bidding&page={{nextPage}}">
                             <i class="bi bi-chevron-right"></i>
                         </a>
                         </li>
@@ -273,22 +273,22 @@
               {{#each activeAuctions}}
               <a href="/products/detail/{{this.id}}" class="list-group-item list-group-item-action border-0 border-bottom p-3">
                 <div class="d-flex align-items-center">
-                  <img src="{{this.image}}" class="rounded me-3 shadow-sm" style="width:80px; height:80px; object-fit:cover;" alt="{{this.title}}">
-                  <div class="flex-grow-1">
-                    <h6 class="mb-2 fw-bold text-dark">{{this.title}}</h6>
+                    <img src="{{this.image_url}}" class="rounded me-3 shadow-sm" style="width:80px; height:80px; object-fit:cover;" alt="{{this.name}}">
+                    <div class="flex-grow-1">
+                    <h6 class="mb-2 fw-bold text-dark">{{this.name}}</h6>
                     <div class="d-flex gap-3 small">
                       <div>
                         <span class="text-muted">Current Price:</span>
-                        <span class="text-success fw-bold ms-1">{{this.currentPrice}}</span>
+                        <span class="text-success fw-bold ms-1">{{#if (gt current_price 0)}} {{format_currency this.current_price}} {{else}} {{format_currency this.starting_price}} {{/if}}</span>
                       </div>
                       <div>
                         <span class="text-muted">Bids:</span>
-                        <span class="fw-bold ms-1">{{this.totalBids}}</span>
+                        <span class="fw-bold ms-1">{{this.total_bids}}</span>
                       </div>
                     </div>
                     <div class="mt-2">
                       <small class="text-muted">
-                        <i class="bi bi-clock me-1"></i>Ends: {{this.endTime}}
+                        <i class="bi bi-clock me-1"></i>Ends: {{formatFullDate this.end_time}}
                       </small>
                     </div>
                   </div>
@@ -303,10 +303,12 @@
               {{/each}}
             </div>
 
+            
             {{#if activeAuctions}}
             <div class="card-footer bg-white border-top py-3">
               <div class="d-flex justify-content-between align-items-center">
                 <small class="text-muted">Showing page {{currentPage}} of {{totalPages}}</small>
+                {{#if (gt totalPages 1)}}
                 <nav>
                   <ul class="pagination pagination-sm mb-0">
                     <li class="page-item {{#if isFirstPage}}disabled{{/if}}">
@@ -326,6 +328,7 @@
                     </li>
                   </ul>
                 </nav>
+                {{/if}}
               </div>
             </div>
             {{/if}}
@@ -335,26 +338,17 @@
             {{#if (eq activeTab 'sold')}}
             <div class="list-group list-group-flush">
               {{#each soldItems}}
-              <a href="/products/detail/{{this.id}}" class="list-group-item list-group-item-action border-0 border-bottom p-3">
+              <a href="/products/detail/{{this.auction_id}}" class="list-group-item list-group-item-action border-0 border-bottom p-3">
                 <div class="d-flex align-items-center">
-                  <img src="{{this.image}}" class="rounded me-3 shadow-sm" style="width:80px; height:80px; object-fit:cover;" alt="{{this.title}}">
+                  <img src="{{this.image_url}}" class="rounded me-3 shadow-sm" style="width:80px; height:80px; object-fit:cover;" alt="{{this.name}}">
                   <div class="flex-grow-1">
-                    <h6 class="mb-2 fw-bold text-dark">{{this.title}}</h6>
+                    <h6 class="mb-2 fw-bold text-dark">{{this.name}}</h6>
                     <div class="d-flex align-items-center gap-2">
-                      <span class="text-success fw-bold">Sold for: {{this.finalPrice}}</span>
-                      {{#if this.isPaid}}
-                      <span class="badge bg-success rounded-pill">
-                        <i class="bi bi-check-circle me-1"></i>Payment Received
-                      </span>
-                      {{else}}
-                      <span class="badge bg-warning rounded-pill">
-                        <i class="bi bi-clock me-1"></i>Awaiting Payment
-                      </span>
-                      {{/if}}
+                      <span class="text-success fw-bold">Sold for: {{format_currency this.current_price}}</span>
                     </div>
                     <div class="mt-2">
                       <small class="text-muted">
-                        <i class="bi bi-person me-1"></i>Buyer: {{this.buyerName}}
+                        <i class="bi bi-person me-1"></i>Buyer: {{this.buyer_name}}
                       </small>
                     </div>
                   </div>
@@ -373,25 +367,27 @@
             <div class="card-footer bg-white border-top py-3">
               <div class="d-flex justify-content-between align-items-center">
                 <small class="text-muted">Showing page {{currentPage}} of {{totalPages}}</small>
+                {{#if (gt totalPages 1)}}
                 <nav>
                   <ul class="pagination pagination-sm mb-0">
                     <li class="page-item {{#if isFirstPage}}disabled{{/if}}">
-                      <a class="page-link" href="/dashboard?tab=sold&page={{prevPage}}">
+                      <a class="page-link" href="/accounts/my_auctions?tab=sold&page={{prevPage}}">
                         <i class="bi bi-chevron-left"></i>
                       </a>
                     </li>
                     {{#each pages}}
                     <li class="page-item {{#if active}}active{{/if}}">
-                      <a class="page-link" href="/dashboard?tab=sold&page={{number}}">{{number}}</a>
+                      <a class="page-link" href="/accounts/my_auctions?tab=sold&page={{number}}">{{number}}</a>
                     </li>
                     {{/each}}
                     <li class="page-item {{#if isLastPage}}disabled{{/if}}">
-                      <a class="page-link" href="/dashboard?tab=sold&page={{nextPage}}">
+                      <a class="page-link" href="/accounts/my_auctions?tab=sold&page={{nextPage}}">
                         <i class="bi bi-chevron-right"></i>
                       </a>
                     </li>
                   </ul>
                 </nav>
+                {{/if}}
               </div>
             </div>
             {{/if}}
@@ -410,25 +406,13 @@
           </h6>
         </div>
         <div class="card-body">
-          {{#if user.isBuyer}}
-          <a href="/products" class="btn btn-dark w-100 mb-3">
+          
+          <a href="/products" class="btn btn-outline-dark w-100 mb-3">
             <i class="bi bi-search me-2"></i>Browse Auctions
           </a>
-          <a href="/accounts/profile" class="btn btn-outline-dark w-100 mb-3">
-            <i class="bi bi-person me-2"></i>My Profile
-          </a>
-          <a href="/orders" class="btn btn-outline-secondary w-100">
-            <i class="bi bi-box-seam me-2"></i>My Orders
-          </a>
-          {{else}}
-          <a href="/seller/create" class="btn btn-dark w-100 mb-3">
+          {{#if isSellerUpdated}}
+          <a href="/seller/create_product" class="btn btn-outline-dark w-100 mb-3">
             <i class="bi bi-plus-circle me-2"></i>Create Auction
-          </a>
-          <a href="/seller/auctions" class="btn btn-outline-dark w-100 mb-3">
-            <i class="bi bi-box me-2"></i>Manage Auctions
-          </a>
-          <a href="/accounts/profile" class="btn btn-outline-secondary w-100">
-            <i class="bi bi-person me-2"></i>My Profile
           </a>
           {{/if}}
         </div>

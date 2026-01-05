@@ -93,11 +93,6 @@ router.get('/detail/:id', async (req, res) => {
   }
 
   const relatedProducts = await productsService.getAllRelatedProducts(auctionID, Number(product.category_id));
-  //console.log('Related products:', relatedProducts);
-  //console.log(product);
-  if (!product) {
-    return res.status(404).render('404');
-  }
 
   /* ========= IMAGES ========= */
   const photos = await productsService.getAllProductsPhotos([auctionID]);
@@ -115,8 +110,11 @@ router.get('/detail/:id', async (req, res) => {
     }));
   }
 
-  console.log('Bidding history:', product.bidHistory);
+  
 
+  console.log('Bidding history:', product.bidHistory);
+  product.totalBid = product.bidHistory.length
+  console.log('Total bids:', product.totalBid);
   const top_bidder = await productsService.getTop1Bidders(auctionID);
   //console.log('Top bidder:', top_bidder);
 
@@ -157,16 +155,6 @@ router.get('/detail/:id', async (req, res) => {
           product.time_remaining = `${days}d ${hours}h ${minutes}m ${seconds}s`;
       }
   }
-
-  // Formatted end time for display
-  product.end_time_formatted = end.toLocaleString('en-US', {
-      weekday: 'short',
-      year: 'numeric',
-      month: 'numeric',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-  });
 
 
   /* ========= COMMENTS ========= */

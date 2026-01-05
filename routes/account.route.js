@@ -411,9 +411,16 @@ router.get('/my_auctions', isAuth, async (req, res) => {
     
     let activeAuctions = [];
     if (activeTab === 'active' && isSellerUpdated) {
-        totalProducts = await productsService.countAllActiveAuctionsBySellerId(req.user.id);
+        totalProducts = await productsService.countAllActiveAuctionsBySeller(req.user.id);
         activeAuctions = await productsService.getActiveAuctionsBySellerId(req.user.id, limit, offset);
         console.log('Active auctions:', activeAuctions);
+    }
+
+    let soldItems = [];
+    if (activeTab === 'sold' && isSellerUpdated) {
+        totalProducts = await productsService.countAllSoldItemsBySeller(req.user.id);
+        soldItems = await productsService.getSoldItemsBySellerId(req.user.id, limit, offset);
+        console.log('Sold items:', soldItems);
     }
     
     if (!totalProducts) {
@@ -437,6 +444,8 @@ router.get('/my_auctions', isAuth, async (req, res) => {
         biddingItems,
         watchlist,
         wonAuctions,
+        activeAuctions,
+        soldItems,
         isSellerUpdated,
         currentPage: page,
         totalPages,
