@@ -15,14 +15,44 @@ export function getAllProducts(limit, offset) {
     return db('auction').limit(limit).offset(offset);
 }
 
+
+
 export function getAllRelatedProducts(auction_id, category_id) {
     return db('auction as a')
-    .leftJoin('auction_images as ai', 'ai.auction_id', 'a.auction_id')
-    .join('categories as c', 'c.id', 'a.category_id')
-    .whereNot('a.auction_id', auction_id)
-    .where('a.category_id', category_id)
-    .andWhere('ai.is_thumbnail', true)
-    .limit(5);
+        .join('categories as c', 'c.id', 'a.category_id')
+        .leftJoin('categories as p', 'p.id', 'c.parent_id')
+        .leftJoin('auction_images as ai', function () {
+            this.on('ai.auction_id', '=', 'a.auction_id')
+                .andOn('ai.is_thumbnail', '=', db.raw('true'));
+        })
+        .join('user_account as s', 's.id', 'a.seller_id')
+        .leftJoin('user_account as b', 'b.id', 'a.winner_bidder_id')
+        .select(
+            'a.name',
+            'a.end_time',
+            'a.auction_id',
+            'ai.image_url',
+            's.full_name as seller_name',
+            'b.full_name as top_bidder_name',
+            'c.cat_name as category_name',
+            'p.cat_name as parent_name',
+            db.raw(`
+                CASE 
+                    WHEN a.current_price IS NULL OR a.current_price = 0 
+                    THEN a.starting_price 
+                    ELSE a.current_price 
+                END AS "currentPrice"
+            `),
+            db.raw(`
+                (SELECT COUNT(*) 
+                 FROM auction_bids ab 
+                 WHERE ab.auction_id = a.auction_id
+                ) AS bid_count
+            `)
+        )
+        .where('a.category_id', category_id)
+        .whereNot('a.auction_id', auction_id)
+        .limit(4);
 }
 
 export function getAllProductsPhotos(ids) {
@@ -134,7 +164,6 @@ export function getProductBiddingHistory(auction_id) {
     .join('user_account as u', 'u.id', 'bidder_id')
     .select('ab.*', 'u.id', 'u.full_name as bidder_name', 'u.email as bidder_email', 'u.address as bidder_address')
     .where('auction_id', auction_id)
-    .andWhere('ab.is_rejected', false)
     .orderBy('ab.created_at', 'desc');
 }
 
@@ -192,10 +221,15 @@ export function addProductImages(images) {
 // ORDER BY a.auction_id;
 export function getAllAuctionsForAdmin(limit, offset) {
     return db('auction as a')
-        .join('user_account as u', 'a.seller_id', 'u.id')       // Thông tin người bán
-        .leftJoin('categories as c', 'a.category_id', 'c.id')   // Thông tin danh mục
+        .join('user_account as u', 'a.seller_id', 'u.id')       
+        .leftJoin('categories as c', 'a.category_id', 'c.id') 
+        .leftJoin('auction_images as ai', function() {
+            this.on('ai.auction_id', '=', 'a.auction_id')
+                .andOn('ai.is_thumbnail', '=', db.raw('true'));
+        })
         .select(
             'a.auction_id AS ID',
+            'ai.image_url',
             'a.name AS Name',
             'c.cat_name AS Category',
             'u.full_name AS Seller',

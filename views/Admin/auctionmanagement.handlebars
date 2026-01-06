@@ -182,6 +182,7 @@
                             <tr class="text-center">
                                 <th style="width: 60px">ID</th>
                                 <th>Name</th>
+                                <th>Thumbnail</th>
                                 <th>Category</th>
                                 <th>Seller</th>
                                 <th>Current Price</th>
@@ -198,6 +199,12 @@
                                     <div class="fw-bold text-dark">{{Name}}</div>
                                 </td>
                                 <td>
+                                    {{#if image_url}}
+                                    <img src="{{image_url}}" alt="Thumbnail" class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;">
+                                    {{else}}
+                                    <span class="text-muted">No Image</span>
+                                    {{/if}}
+                                <td>
                                     <span class="badge bg-secondary">{{Category}}</span>
                                 </td>
                                 <td>
@@ -205,7 +212,7 @@
                                     {{Seller}}
                                 </td>
                                 <td>
-                                    <span class="text-success fw-bold">{{Current_Price}}</span>
+                                    <span class="text-success fw-bold">{{format_currency Current_Price}}</span>
                                 </td>
                                 <td>
                                     {{#if (eq Status "Completed")}}
@@ -217,15 +224,22 @@
                                     {{/if}}
                                 </td>
                                 <td>
-                                    <small class="text-muted">{{Created_At}}</small>
+                                    <small class="text-muted">{{formatFullDate Created_At}}</small>
                                 </td>
                                 <td>
-                                    <button class="btn btn-outline-danger btn-sm"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#deleteAuctionModal"
-                                            onclick="setDeleteAuction('{{ID}}', '{{Name}}')">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
+                                    <div class="btn-group btn-group-sm d-flex justify-content-center">
+                                        <a href="/products/detail/{{ID}}"  class="btn btn-outline-primary"><i class="bi bi-eye"></i></a>
+                                    
+                
+
+                                        <button class="btn btn-outline-danger btn-sm"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#deleteAuctionModal"
+                                                onclick="setDeleteAuction('{{ID}}', '{{Name}}')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                    
                                 </td>
                             </tr>
                             {{/each}}

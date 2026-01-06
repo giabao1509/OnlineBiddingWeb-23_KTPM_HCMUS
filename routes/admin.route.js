@@ -240,6 +240,28 @@ router.post('/users/add', isAuth, isAdmin, async (req, res) => {
     res.redirect('/admin/users');
 });
 
+router.post('/users/reset_password', isAuth, isAdmin, async (req, res) => {
+    const { id, new_password, confirm_new_password } = req.body;
+    if (new_password.length < 8) {
+        req.flash('error', 'Password must be at least 8 characters long.');
+        return res.redirect('/admin/users');
+    }
+    const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
+    if (!specialCharRegex.test(new_password)) {
+        req.flash('error', 'Password must contain at least one special character.');
+        return res.redirect('/admin/users');
+    }
+
+    if (new_password !== confirm_new_password) {
+        req.flash('error', 'Passwords do not match.');
+        return res.redirect('/admin/users');
+    }
+
+    const hashedPassword = bcrypt.hashSync(new_password, 10);
+    await accountService.updateAccount(id, { password: hashedPassword });
+    req.flash('success', 'Password reset successfully.');
+    res.redirect('/admin/users');
+});
 
 router.post('/users/edit', isAuth, isAdmin, async (req, res) => {
     const { id, full_name, email, role } = req.body;

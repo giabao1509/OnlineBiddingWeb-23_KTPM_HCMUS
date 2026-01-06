@@ -310,7 +310,7 @@
 {{#section 'js'}}
 <!-- Include Quill JS -->
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
   // Initialize Quill Editor
   var quill = new Quill('#editor', {
@@ -331,20 +331,65 @@
   // Form submit - get Quill content
   document.getElementById('productForm').addEventListener('submit', function(e) {
     const description = quill.root.innerHTML;
+    const buyNowPriceHidden = document.getElementById('buyNowPrice_hidden').value;
+    const startPriceHidden = document.getElementById('startPrice_hidden').value;
+    const bidStepHidden = document.getElementById('bidStep_hidden').value;
     
     // Check if description is empty
     if (quill.getText().trim().length === 0) {
       e.preventDefault();
-      alert('Please enter a product description');
+      swal.fire({
+        title: 'Validation Error',
+        text: 'Please enter a product description.',
+        icon: 'error'
+      });
       return;
     }
     
     // Check minimum images
     if (selectedFiles.length < 3) {
       e.preventDefault();
-      alert('Please upload at least 3 images');
+        swal.fire({
+            title: 'Validation Error',
+            text: 'Please upload at least 3 images for the product.',
+            icon: 'error'
+        });
       return;
     }
+
+    // Check Buy Now Price >= Start Price
+    if (buyNowPriceHidden) {
+      if (Number(buyNowPriceHidden) < Number(startPriceHidden)) {
+        e.preventDefault();
+        swal.fire({
+            title: 'Validation Error',
+            text: 'Buy Now Price must be greater than or equal to Starting Price.',
+            icon: 'error'
+        });
+        return;
+      }
+    }
+    
+    if (Number(bidStepHidden) <= 0) {
+      e.preventDefault();
+      swal.fire({
+          title: 'Validation Error',
+          text: 'Bid Increment must be a positive number.',
+          icon: 'error'
+      });
+      return;
+    }
+
+    if (Number(bidStepHidden) > Number(startPriceHidden)) {
+      e.preventDefault();
+      swal.fire({
+          title: 'Validation Error',
+          text: 'Bid Increment cannot be greater than Starting Price.',
+          icon: 'error'
+      });
+      return;
+    }
+    
     
     syncFileInput();
     document.getElementById('descriptionInput').value = description;

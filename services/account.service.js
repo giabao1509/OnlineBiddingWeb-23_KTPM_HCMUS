@@ -11,6 +11,9 @@ export function addOTP(otp) {
     return db('otp').insert(otp);
 }
 
+export function getAccountEmailById(id) {
+    return db('user_account').where('id', id).select('email').first();
+}
 
 export function getOTP(email) {
     return db('otp').where('email', email).first();

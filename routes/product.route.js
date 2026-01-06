@@ -4,9 +4,8 @@ import * as accountService from '../services/account.service.js'
 import { maskName } from '../utils/mask.js';
 import { isAuth } from '../middlewares/auth.mdw.js';
 import * as bidsService from '../services/bids.service.js';
-import { appendDescriptionWithDate } from '../utils/appenDescription.js';
-import { displayTimeRemaining } from '../utils/displayTimeRemaining.js';
-import { buildCommentTree } from '../utils/buildCommentTree.js';
+import { buildCommentTree, appendDescriptionWithDate, displayTimeRemaining } from '../utils/other.js';
+import { sendOutBidMail } from '../utils/mail.js';
 const router = express.Router();
 
 
@@ -47,7 +46,7 @@ router.get('/', async (req, res) => {
         }
     });
 
-    console.log('products:', products);
+    // console.log('products:', products);
 
     totalProducts = await productsService.countByCategoryKeyword(c, kw);
     
@@ -107,11 +106,11 @@ router.get('/detail/:id', async (req, res) => {
     product.isOwner = Number(res.locals.user.id) === product.seller_id;
   }
 
-  console.log('product:', product);
+  //console.log('product:', product);
 
   
   if (res.locals.user) {
-    if (product.winner_bidder_id === Number(res.locals.user.id) || product.seller_id === Number(res.locals.user.id)) {
+    if (product.order_id && (product.winner_bidder_id === Number(res.locals.user.id) || product.seller_id === Number(res.locals.user.id))) {
     res.redirect(`/orders/${Number(product.order_id)}`);
     }
   }
@@ -161,24 +160,6 @@ router.get('/detail/:id', async (req, res) => {
   /* ========= COMMENTS ========= */
   const comments = await productsService.getAllProductComments(auctionID) || [];
 
-  // const roots = comments.filter(c => c.parent_id === null);
-  // roots.forEach(c => {
-  //   c.reply = comments.filter(r => r.parent_id === c.comment_id);
-  // });
-
-
-
-  // product.comments = roots;
-
-  // if (product.comments.length > 0) {
-  //   product.comments = product.comments.map(c => ({
-  //     ...c,
-  //     reply: c.reply.map(r => ({
-  //       ...r 
-  //     }))
-  //   }));
-  // }
-
   product.comments = buildCommentTree(comments);
   console.log(product.comments);
   const total_comments = await productsService.countProductComments(auctionID);
@@ -188,6 +169,13 @@ router.get('/detail/:id', async (req, res) => {
 
 
   const relatedProducts = await productsService.getAllRelatedProducts(auctionID, Number(product.category_id));
+
+  relatedProducts.forEach(p => {
+        p.time_remaining = displayTimeRemaining(p.end_time);
+        if (p.top_bidder_name) {
+            p.top_bidder_name = maskName(p.top_bidder_name);
+        }
+  });
 
   res.render('Products/detail', { 
     product, 
@@ -256,7 +244,19 @@ router.post('/detail/:id/bid', isAuth, async (req, res) => {
         max_bid: Number(product.buy_now_price),
         amount: Number(product.buy_now_price)
         };
-        await bidsService.placeBid(bid);
+        const result = await bidsService.placeBid(bid);
+        const bidId = result[0].bid_id;
+        await bidsService.updateTopBidder(Number(auction_id), bidId);
+        const updatedProduct = await productsService.getProductsDetailById(auction_id);
+
+        if (product.winner_bidder_id && updatedProduct.winner_bidder_id && product.winner_bidder_id !== updatedProduct.winner_bidder_id) {
+            const outBidderEmail = await accountService.getAccountEmailById(product.winner_bidder_id);
+            await sendOutBidMail(
+                outBidderEmail.email,
+                updatedProduct.name,
+                updatedProduct.auction_id
+            );
+        }
         req.flash('success', 'You have successfully bought the product at the Buy Now price.');
         const retUrl = req.headers.referer || '/';
         return res.redirect(retUrl);
@@ -267,9 +267,20 @@ router.post('/detail/:id/bid', isAuth, async (req, res) => {
         bidder_id: Number(bidder_id),
         max_bid: Number(max_bid),
     };
-    console.log(bid);
-    await bidsService.placeBid(bid);
 
+    const result = await bidsService.placeBid(bid);
+    const bidId = result[0].bid_id;
+    await bidsService.updateTopBidder(Number(auction_id), bidId);
+    const updatedProduct = await productsService.getProductsDetailById(auction_id);
+
+    if (product.winner_bidder_id && updatedProduct.winner_bidder_id && product.winner_bidder_id !== updatedProduct.winner_bidder_id) {
+        const outBidderEmail = await accountService.getAccountEmailById(product.winner_bidder_id);
+        await sendOutBidMail(
+            outBidderEmail.email,
+            updatedProduct.name,
+            updatedProduct.auction_id
+        );
+    }
     req.flash('success', 'Your bid has been placed successfully.');
     const retUrl = req.headers.referer || '/';
     res.redirect(retUrl);
@@ -279,6 +290,7 @@ router.post('/detail/:id/bid/reject', isAuth, async (req, res) => {
     const { bidId } = req.body;
     const auction_id = req.params.id;
     await bidsService.rejectBid(Number(bidId), Number(auction_id));
+    await bidsService.updateTopBidder(Number(auction_id), bidId);
     console.log('Rejected bid ID:', bidId);
     console.log('For auction ID:', auction_id);
     req.flash('success', 'The bid has been rejected successfully.');

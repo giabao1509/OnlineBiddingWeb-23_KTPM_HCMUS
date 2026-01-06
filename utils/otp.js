@@ -1,7 +1,6 @@
 import nodemailer from "nodemailer";
 
-export async function sendOTPEmail(toEmail, otp_code) {
-  const transporter = nodemailer.createTransport({
+const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 465,
     secure: true,
@@ -13,6 +12,8 @@ export async function sendOTPEmail(toEmail, otp_code) {
     rejectUnauthorized: false
     }
   });
+  
+export async function sendOTPEmail(toEmail, otp_code) {
 
   const mailOptions = {
     from: `"My App" <${process.env.EMAIL_USER}>`, 
@@ -28,3 +29,5 @@ export async function sendOTPEmail(toEmail, otp_code) {
 export function generateOTP() {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
+
+
