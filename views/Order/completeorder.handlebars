@@ -770,7 +770,7 @@ shippingremoveBtn.addEventListener('click', () => {
 
                         
                     {{else}}
-                        <h5 class="mb-4"><i class="bi bi-1-circle-fill"></i>Waiting for buyer to complete payment</h5>
+                        <h5 class="mb-4"><i class="bi bi-1-circle-fill"></i> Waiting for buyer to complete payment</h5>
                         <div class="alert alert-info">
                         <i class="bi bi-clock-history"></i> Waiting for buyer to submit payment information and shipping address.
                         </div>
@@ -781,15 +781,15 @@ shippingremoveBtn.addEventListener('click', () => {
             <div> 
                 {{#if (eq order.step 2)}}
                     {{#if isOrderSeller}}
-                        <h5 class="mb-4"><i class="bi bi-2-circle-fill"></i> Bước 2: Xác nhận thanh toán và gửi hàng</h5>
+                        <h5 class="mb-4"><i class="bi bi-2-circle-fill"></i> Confirm payment and send item </h5>
 
                         <div class="alert alert-success mb-3">
-                        <i class="bi bi-check-circle"></i> Người mua đã gửi thông tin thanh toán
+                        <i class="bi bi-check-circle"></i> Buyer has provided payment information
                         </div>
 
                         {{#if order.payment_proof}}
                         <div class="mb-3">
-                        <label class="form-label">Chứng từ thanh toán:</label>
+                        <label class="form-label">Payment proof:</label>
                         <div>
                             <img src="{{order.payment_proof}}" alt="Payment proof" class="img-fluid rounded" style="max-width: 300px;">
                         </div>
@@ -799,11 +799,11 @@ shippingremoveBtn.addEventListener('click', () => {
                         {{#if order.payment_address}}
                         <div class="card bg-light mb-3">
                         <div class="card-body">
-                            <h6>Địa chỉ giao hàng:</h6>
+                            <h6>Shipping address:</h6>
                             <p class="mb-1">{{order.payment_address}}</p>
-                            <p class="mb-1">SĐT: {{order.payment_phone}}</p>
+                            <p class="mb-1">Phone number: {{order.payment_phone}}</p>
                             {{#if order.payment_notes}}
-                            <p class="mb-0 text-muted small">Ghi chú: {{order.payment_notes}}</p>
+                            <p class="mb-0 text-muted small">Notes: {{order.payment_notes}}</p>
                             {{/if}}
                         </div>
                         </div>
@@ -812,7 +812,7 @@ shippingremoveBtn.addEventListener('click', () => {
                         <hr>
                         <form id="shippingForm" method="post" action="/orders/{{order.id}}/confirm_delivery" enctype="multipart/form-data">
                         <div class="mb-3">
-                            <label class="form-label">Hóa đơn vận chuyển</label>
+                            <label class="form-label">Shipping invoice</label>
                             <input type="file"
                                 class="form-control"
                                 id="shippingProof"
@@ -821,7 +821,7 @@ shippingremoveBtn.addEventListener('click', () => {
                                 required>
 
                             <small class="text-muted">
-                                Upload ảnh hóa đơn vận chuyển
+                                Upload shipping invoice
                             </small>
 
 
@@ -834,31 +834,31 @@ shippingremoveBtn.addEventListener('click', () => {
                                 <button type="button"
                                         class="btn btn-sm btn-outline-danger mt-2"
                                         id="removeShippingImage">
-                                    Xoá ảnh
+                                    Delete
                                 </button>
                             </div>
                         </div>
 
                         <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-truck"></i> Xác nhận đã gửi hàng
+                            <i class="bi bi-truck"></i> Confirm item has been shipped
                         </button>
                         </form>
                     {{else}}
-                    <h5 class="mb-4"><i class="bi bi-2-circle-fill"></i> Bước 2: Đang chờ người bán gửi hàng</h5>
+                    <h5 class="mb-4"><i class="bi bi-2-circle-fill"></i> Waiting for the seller to ship </h5>
                         <div class="alert alert-success mb-3">
-                        <i class="bi bi-check-circle"></i> Đã gửi thông tin thanh toán thành công
+                        <i class="bi bi-check-circle"></i> Payment information submitted successfully
                         </div>
                         {{#if order.payment_address}}
                         <div class="card bg-light mb-3">
                         <div class="card-body">
-                            <h6>Địa chỉ giao hàng của bạn:</h6>
+                            <h6>Your shipping address:</h6>
                             <p class="mb-1">{{order.payment_address}}</p>
-                            <p class="mb-0">SĐT: {{order.payment_phone}}</p>
+                            <p class="mb-0">Phone number: {{order.payment_phone}}</p>
                         </div>
                         </div>
                         {{/if}}
                         <div class="alert alert-info">
-                        <i class="bi bi-clock-history"></i> Đang chờ người bán xác nhận đã nhận tiền và gửi hóa đơn vận chuyển.
+                        <i class="bi bi-clock-history"></i> Waiting for the seller to confirm payment received and send the shipping invoice.
                         </div>
                     {{/if}}
                 {{/if}}
@@ -867,57 +867,57 @@ shippingremoveBtn.addEventListener('click', () => {
             <div>
                 {{#if (eq order.step 3)}}
                     {{#if isOrderBuyer}}
-                        <h5 class="mb-4"><i class="bi bi-3-circle-fill"></i> Bước 3: Xác nhận đã nhận hàng</h5>
+                        <h5 class="mb-4"><i class="bi bi-3-circle-fill"></i> Confirm receipt of goods </h5>
 
                         <div class="alert alert-success mb-3">
-                        <i class="bi bi-truck"></i> Người bán đã gửi hàng
+                        <i class="bi bi-truck"></i> The seller has shipped the goods
                         </div>
 
                         {{#if order.shipping_proof}}
                         <div class="mb-3">
-                        <label class="form-label">Hóa đơn vận chuyển:</label>
+                        <label class="form-label">Shipping invoice:</label>
                         <div>
                             <img src="{{order.shipping_proof}}" alt="Shipping invoice" class="img-fluid rounded" style="max-width: 300px;">
                         </div>
-                        <small class="text-muted">Gửi lúc: {{formatFullDate order.shipping_updated_at}}</small>
+                        <small class="text-muted">Sent at: {{formatFullDate order.shipping_updated_at}}</small>
                         </div>
                         {{/if}}
 
                         <div class="alert alert-warning">
-                        <i class="bi bi-exclamation-triangle"></i> Vui lòng kiểm tra kỹ hàng hóa trước khi xác nhận đã nhận
+                        <i class="bi bi-exclamation-triangle"></i> Please carefully check the goods before confirming receipt.
                         </div>
 
                         <form id="receiveForm" method="post" action="/orders/{{order.id}}/confirm_received">
                             <div class="form-check mb-3">
                                 <input class="form-check-input" type="checkbox" name="confirmCheck" id="confirmCheck" required>
                                 <label class="form-check-label" for="confirmCheck">
-                                Tôi xác nhận đã nhận được hàng và sản phẩm đúng như mô tả
+                                I confirm that I have received the goods and the product matches the description.
                                 </label>
                             </div>
 
                             <button type="submit" class="btn btn-success">
-                                <i class="bi bi-box-seam"></i> Xác nhận đã nhận hàng
+                                <i class="bi bi-box-seam"></i> Confirm receipt of goods
                             </button>
                         </form>
                     {{else}}
-                        <h5 class="mb-4"><i class="bi bi-3-circle-fill"></i> Bước 3: Đang chờ người mua nhận hàng</h5>
+                        <h5 class="mb-4"><i class="bi bi-3-circle-fill"></i> Waiting for the buyer to receive the goods </h5>
 
                         <div class="alert alert-success mb-3">
-                        <i class="bi bi-check-circle"></i> Đã gửi hóa đơn vận chuyển thành công
+                        <i class="bi bi-check-circle"></i> Shipping invoice sent successfully
                         </div>
 
                         {{#if order.shipping_proof}}
                         <div class="mb-3">
-                        <label class="form-label">Hóa đơn vận chuyển đã gửi:</label>
+                        <label class="form-label">Shipping invoice sent:</label>
                         <div>
                             <img src="{{order.shipping_proof}}" alt="Shipping invoice" class="img-fluid rounded" style="max-width: 300px;">
                         </div>
-                        <small class="text-muted">Gửi lúc: {{formatFullDate order.shipping_updated_at}}</small>
+                        <small class="text-muted">Sent at: {{formatFullDate order.shipping_updated_at}}</small>
                         </div>
                         {{/if}}
 
                         <div class="alert alert-info">
-                        <i class="bi bi-clock-history"></i> Đang chờ người mua xác nhận đã nhận hàng.
+                        <i class="bi bi-clock-history"></i> Waiting for the buyer to confirm receipt of goods.
                         </div>
                     {{/if}}
                 {{/if}}
@@ -925,15 +925,15 @@ shippingremoveBtn.addEventListener('click', () => {
         
             <div> 
                 {{#if (eq order.step 4)}}
-                    <h5 class="mb-4"><i class="bi bi-4-circle-fill"></i> Bước 4: Đánh giá giao dịch</h5>
+                    <h5 class="mb-4"><i class="bi bi-4-circle-fill"></i> Rate the transaction</h5>
                         <div class="alert alert-success mb-4">
-                        <i class="bi bi-check-circle"></i> Giao dịch hoàn tất! Vui lòng đánh giá để giúp cải thiện trải nghiệm.
+                        <i class="bi bi-check-circle"></i> Transaction completed! Please leave a review to help improve the experience.
                         </div>
                         {{#if isOrderBuyer}}
                             {{#if order.orderRating}}
                                 <div class="card bg-light mb-3">
                                 <div class="card-body">
-                                    <h6>Đánh giá của bạn cho người bán:</h6>
+                                    <h6>Your rating for the seller:</h6>
                                     <div class="rating-stars mb-2">
                                     {{#if ( eq order.orderRating.rating 1)}}
                                         <div class="d-flex align-items-center text-success">
@@ -965,28 +965,27 @@ shippingremoveBtn.addEventListener('click', () => {
                                 <input type="hidden" name="reviewer" value="{{order.winner_bidder_id}}">
                                 <input type="hidden" name="reviewee" value="{{order.seller_id}}">
                                 <div class="mb-3">
-                                    <label class="form-label">Đánh giá người bán *</label>
+                                    <label class="form-label">Rate the seller <span class="text-danger">*</span></label>
                                     <div class="btn-group w-100" role="group">
                                     <input type="radio" class="btn-check" name="rating" id="positive" value="1" required>
                                     <label class="btn btn-outline-success" for="positive">
-                                        <i class="bi bi-hand-thumbs-up"></i> Tích cực (+1)
+                                        <i class="bi bi-hand-thumbs-up"></i> Positive (+1)
                                     </label>
 
                                     <input type="radio" class="btn-check" name="rating" id="negative" value="-1" required>
                                     <label class="btn btn-outline-danger" for="negative">
-                                        <i class="bi bi-hand-thumbs-down"></i> Tiêu cực (-1)
+                                        <i class="bi bi-hand-thumbs-down"></i> Negative (-1)
                                     </label>
                                     </div>
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label">Nhận xét *</label>
-                                    <textarea class="form-control" name="comment" id="comment" rows="3" placeholder="Chia sẻ trải nghiệm của bạn..." required></textarea>
-                                    <small class="text-muted">Tối thiểu 10 ký tự</small>
+                                    <label class="form-label">Comment</label>
+                                    <textarea class="form-control" name="comment" id="comment" rows="3" placeholder="Share your experience..." required></textarea>
                                 </div>
 
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-send"></i> Gửi đánh giá
+                                    <i class="bi bi-send"></i> Submit review
                                 </button>
                                 </form>
                             {{/if }}
@@ -994,7 +993,7 @@ shippingremoveBtn.addEventListener('click', () => {
                             {{#if order.orderRating}}
                                 <div class="card bg-light mb-3">
                                 <div class="card-body">
-                                    <h6>Đánh giá của bạn cho người mua:</h6>
+                                    <h6>Your rating for the buyer:</h6>
                                     <div class="rating-stars mb-2">
                                     {{#if ( eq order.orderRating.rating 1)}}
                                         <div class="d-flex align-items-center text-success">
@@ -1028,29 +1027,28 @@ shippingremoveBtn.addEventListener('click', () => {
                                 <input type="hidden" name="reviewer" value="{{order.seller_id}}">
                                 <input type="hidden" name="reviewee" value="{{order.winner_bidder_id}}">
                                 <div class="mb-3">
-                                    <label class="form-label">Đánh giá người mua</label>
+                                    <label class="form-label">Rate the buyer</label>
                                     <div class="btn-group w-100" role="group">
                                     <input type="radio" class="btn-check" name="rating" id="positive" value="1" required>
                                     <label class="btn btn-outline-success" for="positive">
-                                        <i class="bi bi-hand-thumbs-up"></i> Tích cực (+1)
+                                        <i class="bi bi-hand-thumbs-up"></i> Positive (+1)
                                     </label>
 
                                     <input type="radio" class="btn-check" name="rating" id="negative" value="-1" required>
                                     <label class="btn btn-outline-danger" for="negative">
-                                        <i class="bi bi-hand-thumbs-down"></i> Tiêu cực (-1)
+                                        <i class="bi bi-hand-thumbs-down"></i> Negative (-1)
                                     </label>
                                     </div>
                                 </div>
 
                                 
                                 <div class="mb-3">
-                                    <label class="form-label">Nhận xét *</label>
-                                    <textarea class="form-control" name="comment" id="comment" rows="3" placeholder="Chia sẻ trải nghiệm của bạn..." required></textarea>
-                                    <small class="text-muted">Tối thiểu 10 ký tự</small>
+                                    <label class="form-label">Comment</label>
+                                    <textarea class="form-control" name="comment" id="comment" rows="3" placeholder="Share your experience..." required></textarea>
                                 </div>
 
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-send"></i> Gửi đánh giá
+                                    <i class="bi bi-send"></i> Submit review
                                 </button>
                                 </form>
                             {{/if }}
@@ -1064,9 +1062,9 @@ shippingremoveBtn.addEventListener('click', () => {
     {{#if isOrderSeller}}
         <div class="card border-danger">
             <div class="card-body">
-                <h6 class="card-title text-danger">Huỷ giao dịch</h6>
+                <h6 class="card-title text-danger">Cancel transaction</h6>
                 <p class="small text-muted">
-                Bạn có thể huỷ giao dịch nếu người mua không đáp ứng yêu cầu
+                You can cancel the transaction if the buyer does not meet the requirements.
                 </p>
 
                 <button
@@ -1074,7 +1072,7 @@ shippingremoveBtn.addEventListener('click', () => {
                 class="btn btn-outline-danger btn-sm"
                 data-bs-toggle="modal"
                 data-bs-target="#cancelOrderModal">
-                <i class="bi bi-x-circle"></i> Huỷ giao dịch
+                <i class="bi bi-x-circle"></i> Cancel transaction
                 </button>
             </div>
         </div>
@@ -1089,7 +1087,7 @@ shippingremoveBtn.addEventListener('click', () => {
     <div class="chat-card">
         <div class="card-header">
             <i class="bi bi-chat-dots"></i>
-            Trò chuyện với {{#if isOrderBuyer}}người bán{{else}}người mua{{/if}}
+            Chat with {{#if isOrderBuyer}}seller{{else}}buyer{{/if}}
         </div>
 
         <div class="chat-box" id="chatBox">
@@ -1106,7 +1104,7 @@ shippingremoveBtn.addEventListener('click', () => {
         <div class="chat-input">
             <form id="chatForm" method="post" action="/orders/{{order.id}}/send_message">
             <div class="input-group">
-                <input type="text" class="form-control" name="content" placeholder="Nhập tin nhắn..." required>
+                <input type="text" class="form-control" name="content" placeholder="Sent message..." required>
                 <button class="btn btn-primary">
                 <i class="bi bi-send"></i>
                 </button>
@@ -1223,7 +1221,7 @@ shippingremoveBtn.addEventListener('click', () => {
     <div class="modal-content">
       <form method="post" action="/orders/{{order.id}}/update_rate">
         <div class="modal-header">
-          <h5 class="modal-title">Edit rating</h5>
+          <h5 class="modal-title">Edit Rating</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
 
@@ -1234,7 +1232,7 @@ shippingremoveBtn.addEventListener('click', () => {
 
           <!-- rating -->
           <div class="mb-3">
-            <label class="form-label">Edit rating</label>
+            <label class="form-label">Edit Rating</label>
             <div class="btn-group w-100">
               <input type="radio" class="btn-check" name="rating" id="edit_positive" value="1">
               <label class="btn btn-outline-success" for="edit_positive">
@@ -1275,21 +1273,19 @@ shippingremoveBtn.addEventListener('click', () => {
 </div>
 
 
-
 <div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
 
-      <form
-        method="POST"
-        action="/orders/{{order.id}}/cancel">
+      <form method="POST" action="/orders/{{order.id}}/cancel">
         <input type="hidden" name="reviewee" value="{{order.winner_bidder_id}}">
         <input type="hidden" name="reviewer" value="{{order.seller_id}}">
+
         <!-- Header -->
         <div class="modal-header border-0">
           <h5 class="modal-title text-danger">
             <i class="bi bi-exclamation-triangle-fill"></i>
-            Xác nhận huỷ giao dịch
+            Confirm Cancel Transaction
           </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
@@ -1297,28 +1293,29 @@ shippingremoveBtn.addEventListener('click', () => {
         <!-- Body -->
         <div class="modal-body">
           <p>
-            Bạn có chắc chắn muốn <strong class="text-danger">huỷ giao dịch</strong> này không?
+            Are you sure you want to <strong class="text-danger">cancel this transaction</strong>?
           </p>
 
           <div class="alert alert-warning small">
             <ul class="mb-0">
-              <li>Giao dịch sẽ bị đóng vĩnh viễn</li>
-              <li>Người mua sẽ bị đánh giá <strong>-1 điểm</strong></li>
-              <li>Hành động này <strong>không thể hoàn tác</strong></li>
+              <li>The transaction will be permanently closed</li>
+              <li>The buyer will receive a <strong>-1 point</strong> rating</li>
+              <li>This action <strong>cannot be undone</strong></li>
             </ul>
           </div>
 
-          <!-- Lý do huỷ (khuyên dùng) -->
+          <!-- Cancel reason (optional) -->
           <div class="mb-2">
             <label class="form-label small">
-              Lý do huỷ (không bắt buộc)
+              Reason for cancellation (optional)
             </label>
             <textarea
               name="cancel_reason"
               class="form-control"
               rows="2"
-              placeholder="Người thắng không thanh toán"></textarea>
+              placeholder="Winner did not pay"></textarea>
           </div>
+        </div>
 
         <!-- Footer -->
         <div class="modal-footer border-0">
@@ -1326,13 +1323,13 @@ shippingremoveBtn.addEventListener('click', () => {
             type="button"
             class="btn btn-outline-secondary btn-sm"
             data-bs-dismiss="modal">
-            Quay lại
+            Back
           </button>
 
           <button
             type="submit"
             class="btn btn-danger btn-sm">
-            <i class="bi bi-x-circle"></i> Xác nhận huỷ
+            <i class="bi bi-x-circle"></i> Confirm Cancel
           </button>
         </div>
 
@@ -1341,6 +1338,3 @@ shippingremoveBtn.addEventListener('click', () => {
     </div>
   </div>
 </div>
-
-
-

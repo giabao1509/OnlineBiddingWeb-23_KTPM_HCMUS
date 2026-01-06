@@ -52,29 +52,52 @@ export function filterByCategory(category_name) {
 
 export function searchByCategoryKeywordAndSort(category_name, keyword, limit, offset, sortField, sortOrder) {
     let query = db('auction as a')
-    .join('categories as c', 'c.id', 'a.category_id')
-    .leftJoin('categories as p', 'p.id', 'c.parent_id')
-    .select('a.*', 'c.cat_name as category_name', 'p.cat_name as parent_name')
-    .limit(limit)
-    .offset(offset);
+        .join('categories as c', 'c.id', 'a.category_id')
+        .leftJoin('categories as p', 'p.id', 'c.parent_id')
+        .leftJoin('auction_images as ai', function() {
+            this.on('ai.auction_id', '=', 'a.auction_id')
+                .andOn('ai.is_thumbnail', '=', db.raw('true'));
+        })
+        .join('user_account as s', 's.id', 'a.seller_id')
+        .leftJoin('user_account as b', 'b.id', 'a.winner_bidder_id')
+        .select(
+            'a.name',
+            'a.end_time',          
+            'a.auction_id',
+            'ai.image_url',
+            's.full_name as seller_name',
+            'b.full_name as top_bidder_name',
+            'c.cat_name as category_name',
+            'p.cat_name as parent_name',
+            db.raw('CASE WHEN a.current_price IS NULL OR a.current_price = 0 THEN a.starting_price ELSE a.current_price END as "currentPrice"'),
+            db.raw('(SELECT COUNT(*) FROM auction_bids ab WHERE ab.auction_id = a.auction_id) as bid_count')
+        )
+        .limit(limit)
+        .offset(offset);
 
     if (category_name) {
-    query.where(function() {
-        this.where('c.id', category_name)
-            .orWhere('p.id', category_name)
-    });
+        query.where(function() {
+            this.where('c.id', category_name)
+                .orWhere('p.id', category_name)
+        });
     }
 
     if (keyword) {
-    query.andWhereRaw(`fts @@ to_tsquery(remove_accents(?))`, [keyword]);
+        query.andWhereRaw(`fts @@ to_tsquery(remove_accents(?))`, [keyword]);
     }
 
-    const field = sortField || 'a.created_at';
     const order = sortOrder || 'desc';
-    query.orderBy(field, order);
+    if (sortField === 'sort_price') {
+        query.orderByRaw('CASE WHEN a.current_price IS NULL OR a.current_price = 0 THEN a.starting_price ELSE a.current_price END ' + order);
+    } else {
+        const field = sortField || 'a.created_at';
+        query.orderBy(field, order);
+    }
 
-    return query; 
+    return query;
 }
+
+
 
 
 
@@ -96,14 +119,14 @@ export async function countByCategoryKeyword(category_id, keyword) {
 
   const result = await query.count('a.auction_id as count').first();
 
-  return parseInt(result.count, 10); // trả về số nguyên
+  return parseInt(result.count, 10); 
 }
 
 
 export function getProductBiddingHistory(auction_id) {
     return db('auction_bids as ab')
     .join('user_account as u', 'u.id', 'bidder_id')
-    .select('ab.*', 'u.full_name as bidder_name', 'u.email as bidder_email', 'u.address as bidder_address')
+    .select('ab.*', 'u.id', 'u.full_name as bidder_name', 'u.email as bidder_email', 'u.address as bidder_address')
     .where('auction_id', auction_id)
     .andWhere('ab.is_rejected', false)
     .orderBy('ab.created_at', 'desc');

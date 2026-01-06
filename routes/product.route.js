@@ -5,6 +5,8 @@ import { maskName } from '../utils/mask.js';
 import { isAuth } from '../middlewares/auth.mdw.js';
 import * as bidsService from '../services/bids.service.js';
 import { appendDescriptionWithDate } from '../utils/appenDescription.js';
+import { displayTimeRemaining } from '../utils/displayTimeRemaining.js';
+import { buildCommentTree } from '../utils/buildCommentTree.js';
 const router = express.Router();
 
 
@@ -25,10 +27,9 @@ router.get('/', async (req, res) => {
 
     const sortMap = {
         newest: { field: 'a.created_at', order: 'desc' },
-        ending_soon: { field: 'a.end_time', order: 'asc' },
-        price_low: { field: 'a.starting_price', order: 'asc' },
-        price_high: { field: 'a.starting_price', order: 'desc' },
-        //most_bids: { field: 'a.bid_count', order: 'desc' }
+        price_low: { field: 'sort_price', order: 'asc' },
+        price_high: { field: 'sort_price', order: 'desc' },
+        most_bids: { field: 'bid_count', order: 'desc' }
     };
 
     const sortKey = req.query.sort || 'newest';
@@ -37,22 +38,20 @@ router.get('/', async (req, res) => {
     const sortOrder = sortConfig.order;
 
     products  = await productsService.searchByCategoryKeywordAndSort(c, kw, limit, offset, sortField, sortOrder)
-    //console.log('products:', products);
+    
+
+    products.forEach(p => {
+        p.time_remaining = displayTimeRemaining(p.end_time);
+        if (p.top_bidder_name) {
+            p.top_bidder_name = maskName(p.top_bidder_name);
+        }
+    });
+
+    console.log('products:', products);
+
     totalProducts = await productsService.countByCategoryKeyword(c, kw);
-    //console.log('total products:', totalProducts)
-
-    const ids = products.map(p => p.auction_id);
-
-    const photos = await productsService.getAllProductsPhotos(ids)
-
-    for (const p of products) {
-    const imgs = photos.filter(img => img.auction_id === p.auction_id);
-    p.photos = imgs;
-    p.thumbnail = imgs.find(i => i.is_thumbnail);
-    }    
     
     const totalPages = Math.ceil(totalProducts / limit);
-    //console.log('total page:', totalPages)
     const pages = [];
     for (let i = 1; i <= totalPages; i++) {
         pages.push({ number: i, active: i === page });
@@ -70,11 +69,25 @@ router.get('/', async (req, res) => {
     sort: req.query.sort || 'newest'
     };
 
+    let sortOptions = [
+            { value: 'newest', name: 'Newest' },
+            { value: 'price_low', name: 'Price: Low → High' },
+            { value: 'price_high', name: 'Price: High → Low' },
+            { value: 'most_bids', name: 'Most Bids' }
+        ];
+    const selectedSort = sortKey || 'newest';
+    sortOptions.forEach(opt => {
+    opt.selected = opt.value === selectedSort;
+    });
+    console.log('sortOptions:', sortOptions);
+    console.log('selectedSort:', selectedSort);
     //console.log(queryParams)
     res.render('Products/all', {
     products,
     query: queryParams,
     empty: products.length === 0,
+    sortOptions,
+    selectedSort,
     pages,
     prevPage,
     nextPage,
@@ -107,7 +120,7 @@ router.get('/detail/:id', async (req, res) => {
   if (product.bidHistory.length > 0) {
     product.bidHistory = product.bidHistory.map(b => ({
       ...b,
-      bidder_name: maskName(b.bidder_name)
+      mask_name: maskName(b.bidder_name)
     }));
   }
   product.totalBid = product.bidHistory.length
@@ -117,63 +130,48 @@ router.get('/detail/:id', async (req, res) => {
   const seller = await accountService.getUserExternalInfo(product.seller_id);
   const sellerInfo = seller[0]
   sellerInfo.rating_percent = Number(sellerInfo.rating_score) * 100;
-  console.log('sellerInfo:', sellerInfo);
+  //console.log('sellerInfo:', sellerInfo);
+
   
+  const topBidder = await accountService.getUserExternalInfo(product.winner_bidder_id);
+  let topBidderInfo = null;
 
-  /* ========= TIME REMAINING ========= */
-  const now = new Date();
-  const end = new Date(product.end_time);
+  if (topBidder && topBidder.length > 0 && topBidder[0]) {
+      topBidderInfo = topBidder[0];
+      
+      topBidderInfo.rating_percent = Number(topBidderInfo.rating_score || 0) * 100;
+      
+      topBidderInfo.mask_name = maskName(topBidderInfo.full_name);
 
-  const diffMs = end - now;
-
-  if (diffMs <= 0) {
-      product.time_remaining = "Ended";
-  } else {
-      const diffSec = Math.floor(diffMs / 1000);
-      const days = Math.floor(diffSec / (24 * 3600));
-      const hours = Math.floor((diffSec % (24 * 3600)) / 3600);
-      const minutes = Math.floor((diffSec % 3600) / 60);
-      const seconds = diffSec % 60;
-
-      // If less than 3 days → show relative time
-      if (days < 3) {
-          if (days > 0) {
-              product.time_remaining = `${days} day${days > 1 ? 's' : ''} left`;
-          } else if (hours > 0) {
-              product.time_remaining = `${hours} hour${hours > 1 ? 's' : ''} left`;
-          } else if (minutes > 0) {
-              product.time_remaining = `${minutes} minute${minutes > 1 ? 's' : ''} left`;
-          } else {
-              product.time_remaining = `${seconds} second${seconds > 1 ? 's' : ''} left`;
-          }
-      } else {
-          // Show full countdown if >= 3 days
-          product.time_remaining = `${days}d ${hours}h ${minutes}m ${seconds}s`;
-      }
+      console.log('topBidderInfo:', topBidderInfo);
   }
 
+  /* ========= TIME REMAINING ========= */
+  product.time_remaining = displayTimeRemaining(product.end_time);
 
   /* ========= COMMENTS ========= */
   const comments = await productsService.getAllProductComments(auctionID) || [];
 
-  const roots = comments.filter(c => c.parent_id === null);
-  roots.forEach(c => {
-    c.reply = comments.filter(r => r.parent_id === c.comment_id);
-  });
+  // const roots = comments.filter(c => c.parent_id === null);
+  // roots.forEach(c => {
+  //   c.reply = comments.filter(r => r.parent_id === c.comment_id);
+  // });
 
 
 
-  product.comments = roots;
+  // product.comments = roots;
 
-  if (product.comments.length > 0) {
-    product.comments = product.comments.map(c => ({
-      ...c,
-      reply: c.reply.map(r => ({
-        ...r 
-      }))
-    }));
-  }
-  //console.log(product.comments);
+  // if (product.comments.length > 0) {
+  //   product.comments = product.comments.map(c => ({
+  //     ...c,
+  //     reply: c.reply.map(r => ({
+  //       ...r 
+  //     }))
+  //   }));
+  // }
+
+  product.comments = buildCommentTree(comments);
+  console.log(product.comments);
   const total_comments = await productsService.countProductComments(auctionID);
   product.total_comments = total_comments?.count || 0;
 
@@ -185,7 +183,8 @@ router.get('/detail/:id', async (req, res) => {
   res.render('Products/detail', { 
     product, 
     relatedProducts, 
-    sellerInfo 
+    sellerInfo,
+    topBidderInfo
   });
 });
 

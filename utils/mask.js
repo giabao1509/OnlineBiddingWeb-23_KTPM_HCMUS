@@ -4,7 +4,6 @@ export function maskName(name) {
     name = name.trim();
     if (!name) return "Anonymous";
 
-    // bỏ khoảng trắng
     const clean = name.replace(/\s+/g, "");
 
     const chars = Array.from(clean);

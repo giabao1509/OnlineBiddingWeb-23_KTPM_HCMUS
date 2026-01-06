@@ -146,6 +146,16 @@ async function sendOTP() {
         return;
     }
 
+    const captcha = grecaptcha.getResponse();
+    if (!captcha) {
+        Swal.fire({
+            title: 'Validation Error',
+            text: 'Please complete the reCAPTCHA.',
+            icon: 'error'
+        });
+        return;
+    }
+
     // Nếu hợp lệ, submit form
     e.target.submit();
     });

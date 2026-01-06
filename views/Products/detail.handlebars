@@ -290,6 +290,20 @@ document.addEventListener("DOMContentLoaded", function() {
 
   avatar.textContent = getInitial(fullName);
   avatar.style.backgroundColor = stringToColor(fullName);
+
+    const topBidderName = "{{#if topBidderInfo}}{{topBidderInfo.full_name}}{{/if}}";
+    const avatarTopBidder = document.getElementById('avatarTopBidder');
+    if (avatarTopBidder && topBidderName) {
+        avatarTopBidder.textContent = getInitial(topBidderName);
+        avatarTopBidder.style.backgroundColor = stringToColor(topBidderName);
+    }
+
+  // Chạy cho tất cả avatar
+  document.querySelectorAll('.avatar').forEach(avatar => {
+    const name = avatar.dataset.name;
+    avatar.textContent = getInitial(name);
+    avatar.style.backgroundColor = stringToColor(name);
+  });
 </script>
 {{/section}}
 
@@ -354,8 +368,8 @@ document.addEventListener("DOMContentLoaded", function() {
                     <span class="badge bg-dark fs-6 px-3 py-2 mb-3">{{product.cat_name}}</span>
                     <h1 class="h3 mb-4 fw-bold">{{product.name}}</h1>
 
-                    <a href="/accounts/external_profile/{{sellerInfo.id}}" class="text-decoration-none text-dark">
-                    <div class="seller-card p-4 mb-4 profile-hover-card">
+                   
+                    <div class="seller-card p-4 mb-4">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <h5 class="mb-0 fw-bold text-dark">
                                 <i class="bi bi-shop me-2"></i>Seller Information
@@ -363,11 +377,12 @@ document.addEventListener("DOMContentLoaded", function() {
                         </div>
                         
                         <div class="d-flex align-items-center">
+                            <a href="/accounts/external_profile/{{sellerInfo.id}}" class="text-decoration-none text-dark">
                             <div id="avatar"
                                 class="rounded-circle text-white d-flex align-items-center justify-content-center me-3 flex-shrink-0 fw-bold"
                                 style="width: 80px; height: 80px; font-size: 2rem;">
                             </div>
-                            
+                            </a>
                             <div class="flex-grow-1">
                                 <h6 class="mb-2 fw-bold">{{sellerInfo.full_name}}</h6>
                                 
@@ -390,7 +405,7 @@ document.addEventListener("DOMContentLoaded", function() {
                             </div>
                         </div>
                     </div>
-                    </a>
+                    
 
 
                     <div class="countdown-alert p-3 mb-3">
@@ -417,16 +432,79 @@ document.addEventListener("DOMContentLoaded", function() {
                     </div>
 
                     <div class="top-bidder-card p-3 mb-4">
-                        <h6 class="mb-2 fw-semibold">
-                            <i class="bi bi-trophy-fill text-warning me-2"></i>Top Bidder
-                        </h6>
-                        {{#if product.top_bidder}}
-                        <div>
-                            <span class="fw-semibold">{{product.top_bidder.bidder_name}}</span>
-                            <small class="text-muted ms-2">({{product.top_bidder.bidder_reviews}} reviews)</small>
-                        </div>
+                        {{#if product.isOwner}}
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h5 class="mb-0 fw-bold text-dark">
+                                        <i class="bi bi-trophy me-2"></i>Top Bidder
+                                    </h5>
+                            </div>
+                            {{#if topBidderInfo}}
+                            
+                            
+                            <div class="d-flex align-items-center">
+                                <a href="/accounts/external_profile/{{topBidderInfo.id}}" class="text-decoration-none text-dark">
+                                <div id="avatarTopBidder"
+                                    class="rounded-circle text-white d-flex align-items-center justify-content-center me-3 flex-shrink-0 fw-bold"
+                                    style="width: 80px; height: 80px; font-size: 2rem;">
+                                </div>
+                                </a>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-2 fw-bold">{{topBidderInfo.full_name}}</h6>
+                                    
+                                    <div class="d-flex flex-wrap gap-3 align-items-center mb-2">
+                                        <!-- Joined Date -->
+                                        <div class="d-flex align-items-center text-muted small">
+                                            <i class="bi bi-calendar-check me-1"></i>
+                                            <span>Member since {{formatFullDate topBidderInfo.created_at}}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Rating Percentage -->
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-star-fill me-1 {{#if (gte topBidderInfo.rating_percent 80)}}text-success{{else if (gte topBidderInfo.rating_percent 50)}}text-warning{{else}}text-danger{{/if}}"></i>
+                                        <span class="badge {{#if (gte topBidderInfo.rating_percent 80)}}bg-success{{else if (gte topBidderInfo.rating_percent 50)}}bg-warning{{else}}bg-danger{{/if}} rounded-pill px-2 py-1">
+                                            {{topBidderInfo.rating_percent}}%
+                                        </span>
+                                        <span class="text-muted ms-2 small">({{topBidderInfo.total_reviews}} reviews)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {{else}}
+                            <p class="text-muted mb-0 small">No bids yet</p>
+                            {{/if}}
                         {{else}}
-                        <p class="text-muted mb-0 small">No bids yet</p>
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h5 class="mb-0 fw-bold text-dark">
+                                        <i class="bi bi-trophy me-2"></i>Top Bidder
+                                    </h5>
+                            </div>
+                            {{#if topBidderInfo}}
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-2 fw-bold">{{topBidderInfo.mask_name}}</h6>
+                                    
+                                    <div class="d-flex flex-wrap gap-3 align-items-center mb-2">
+                                        <!-- Joined Date -->
+                                        <div class="d-flex align-items-center text-muted small">
+                                            <i class="bi bi-calendar-check me-1"></i>
+                                            <span>Member since {{formatFullDate topBidderInfo.created_at}}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Rating Percentage -->
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-star-fill me-1 {{#if (gte topBidderInfo.rating_percent 80)}}text-success{{else if (gte topBidderInfo.rating_percent 50)}}text-warning{{else}}text-danger{{/if}}"></i>
+                                        <span class="badge {{#if (gte topBidderInfo.rating_percent 80)}}bg-success{{else if (gte topBidderInfo.rating_percent 50)}}bg-warning{{else}}bg-danger{{/if}} rounded-pill px-2 py-1">
+                                            {{topBidderInfo.rating_percent}}%
+                                        </span>
+                                        <span class="text-muted ms-2 small">({{topBidderInfo.total_reviews}} reviews)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {{else}}
+                            <p class="text-muted mb-0 small">No bids yet</p>
+                            {{/if}}
+                            
                         {{/if}}
                     </div>
 
@@ -514,21 +592,14 @@ document.addEventListener("DOMContentLoaded", function() {
                 <div class="card-header bg-dark text-white border-0">
                     <ul class="nav nav-tabs border-0" role="tablist">
                         <li class="nav-item">
-                            <a class="nav-link active text-white"
+                            <a class="nav-link active text-white-50"
                             data-bs-toggle="tab"
                             href="#description"
                             role="tab">
                                 <i class="bi bi-file-text me-2"></i>Description
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white-50"
-                            data-bs-toggle="tab"
-                            href="#specifications"
-                            role="tab">
-                                <i class="bi bi-list-check me-2"></i>Specifications
-                            </a>
-                        </li>
+
                         <li class="nav-item">
                             <a class="nav-link text-white-50"
                             data-bs-toggle="tab"
@@ -566,27 +637,6 @@ document.addEventListener("DOMContentLoaded", function() {
                             {{/if}}
                         </div>
 
-                        <div class="tab-pane fade" id="specifications">
-                            {{#if product.specifications}}
-                            <h5 class="mb-3 fw-bold">Specifications</h5>
-                            <table class="table table-hover">
-                                <tbody>
-                                    {{#each product.specifications}}
-                                    <tr>
-                                        <th style="width: 30%" class="bg-light">{{this.name}}</th>
-                                        <td>{{this.value}}</td>
-                                    </tr>
-                                    {{/each}}
-                                </tbody>
-                            </table>
-                            {{else}}
-                            <div class="empty-state">
-                                <i class="bi bi-list-check d-block"></i>
-                                <h5 class="text-muted">No Specifications</h5>
-                            </div>
-                            {{/if}}
-                        </div>
-
                         <div class="tab-pane fade" id="bidHistory">
                             <h5 class="mb-3 fw-bold">Bid History</h5>
                             {{#if product.bidHistory}}
@@ -596,26 +646,29 @@ document.addEventListener("DOMContentLoaded", function() {
                                         <th>Bidder</th>
                                         <th>Amount</th>
                                         <th>Time</th>
-                                        <th>Status</th>
                                         {{#if ./product.isOwner}}<th>Action</th>{{/if}}
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {{#each product.bidHistory}}
                                     <tr>
-                                        <td><i class="bi bi-person-circle text-dark me-2"></i>{{this.bidder_name}}</td>
-                                        <td class="fw-bold text-success">{{format_currency this.amount}} VNĐ</td>
-                                        <td><small class="text-muted">{{this.created_at}}</small></td>
                                         <td>
-                                            {{#if this.is_winning}}
-                                            <span class="badge bg-success rounded-pill">Leading</span>
+                                            {{#if ../product.isOwner}}
+                                            <a href="/accounts/external_profile/{{this.id}}" class="text-decoration-none text-dark">
+                                                <i class="bi bi-person-circle text-dark me-2"></i>{{this.bidder_name}}
+                                            </a>
                                             {{else}}
-                                            <span class="badge bg-secondary rounded-pill">Outbid</span>
+                                                <i class="bi bi-person-circle text-dark me-2"></i>{{this.mask_name}}
                                             {{/if}}
                                         </td>
+                                        <td class="fw-bold text-success">{{format_currency this.amount}}</td>
+                                        <td><small class="text-muted">{{formatFullDate this.created_at}}</small></td>
                                         {{#if ../product.isOwner}}
                                         <td>
-                                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#rejectBidModal" onclick="setBidToReject('{{this.bid_id}}', '{{this.bidder_name}}', '{{format_currency this.amount}}')">Reject</button>
+                                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#rejectBidModal"
+                                                onclick="setBidToReject('{{this.bid_id}}', '{{this.bidder_name}}', '{{format_currency this.amount}}')">
+                                                Reject
+                                            </button>
                                         </td>
                                         {{/if}}
                                     </tr>
@@ -637,7 +690,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                 <div class="card border-0 bg-light">
                                     <div class="card-body">
                                         <textarea class="form-control border-0 mb-3" name="content" rows="3" placeholder="Ask a question..." required></textarea>
-                                        <button type="submit" class="btn btn-dark">
+                                        <button type="submit" class="btn btn-outline-dark">
                                             <i class="bi bi-send me-2"></i>Post
                                         </button>
                                     </div>
@@ -649,9 +702,12 @@ document.addEventListener("DOMContentLoaded", function() {
                             {{#each product.comments}}
                             <div class="comment-item border-bottom py-3">
                                 <div class="d-flex">
-                                    <div class="rounded-circle bg-dark bg-opacity-10 d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
-                                        <i class="bi bi-person-fill text-dark"></i>
+                                    <a href="/accounts/external_profile/{{this.user_id}}" class="text-decoration-none text-dark">
+                                    <div class="avatar rounded-circle d-flex align-items-center justify-content-center me-3"
+                                        style="width: 40px; height: 40px;"
+                                        data-name="{{this.user_name}}">
                                     </div>
+                                    </a>
                                     <div class="flex-grow-1">
                                         <h6 class="mb-0 fw-semibold">{{this.user_name}}</h6>
                                         <small class="text-muted">{{this.time}}</small>
@@ -675,6 +731,12 @@ document.addEventListener("DOMContentLoaded", function() {
                                         <div class="reply-box rounded p-3 mt-3">
                                             <div class="d-flex">
                                                 <i class="bi bi-reply-fill text-dark me-2"></i>
+                                                <a href="/accounts/external_profile/{{this.user_id}}" class="text-decoration-none text-dark">
+                                                <div class="avatar rounded-circle d-flex align-items-center justify-content-center me-3"
+                                                    style="width: 40px; height: 40px;"
+                                                    data-name="{{this.user_name}}">
+                                                </div>
+                                                </a>
                                                 <div>
                                                     <strong class="small">{{this.user_name}}</strong>
                                                     <p class="mb-0 mt-1">{{this.content}}</p>
@@ -751,6 +813,10 @@ document.addEventListener("DOMContentLoaded", function() {
                                         </div>
 
                                         <div class="mt-auto d-grid gap-2">
+                                            <a href="/products/detail/{{this.auction_id}}" class="btn btn-outline-dark">
+                                                <i class="bi bi-eye me-1"></i> View Details
+                                            </a>
+
                                             {{#if ../user}}
                                             <form action="/products/add_to_watchlist/{{this.auction_id}}" method="POST">
                                                 <button type="submit" class="btn btn-outline-danger w-100 btn-watchlist">

@@ -57,32 +57,30 @@ export function isAuth(req, res, next) {
 
     try {
         req.user = verifyToken(token);
-        //console.log(req.user)
         next();
     } catch(err) {
         res.clearCookie('authToken');
+        req.flash('error', 'Please sign in to continue');
         res.redirect('/accounts/signin');
     }
 }
 
 export function isAdmin(req, res, next) {
     if (req.user && Number(req.user.role) === 2) return next();
-    res.status(403).send('Access denied');
+    req.flash('error', 'Access denied');
+    res.redirect('/');
 }
 
 export function isSeller(req, res, next) {
     if (req.user && Number(req.user.role) === 1) return next();
-    res.status(403).send('Access denied');
+    req.flash('error', 'Access denied');
+    res.redirect('/');
 }
 
 export function isBuyer(req, res, next) {
     if (req.user && Number(req.user.role) === 0) return next();
-    res.status(403).send('Access denied');
-}
-
-export function isSellerOrAdmin(req, res, next) {
-    if (req.user && (Number(req.user.role) === 1 || Number(req.user.role) === 2)) return next();
-    res.status(403).send('Access denied');
+    req.flash('error', 'Access denied');
+    res.redirect('/');
 }
 
 export async function attachLayoutData(req, res, next) {
@@ -95,7 +93,6 @@ export async function attachLayoutData(req, res, next) {
             res.locals.isSeller = Number(decoded.role) === 1;
             res.locals.isAdmin = Number(decoded.role) === 2;
             res.locals.isBuyer = Number(decoded.role) === 0;
-            //console.log("User data attached to layout:", decoded);
         } catch {
             res.locals.user = null;
         }
@@ -120,26 +117,11 @@ export async function attachLayoutData(req, res, next) {
         }
 
         res.locals.categories = categories;
-        //console.log("Categories loaded for layout.", categories);
-        // Sort options
-        const sortOptions = [
-            { value: 'newest', name: 'Newest' },
-            { value: 'ending_soon', name: 'Ending Soon' },
-            { value: 'price_low', name: 'Price: Low → High' },
-            { value: 'price_high', name: 'Price: High → Low' },
-            { value: 'most_bids', name: 'Most Bids' }
-        ];
-        const selectedSort = req.query.sort || 'newest';
-        res.locals.sortOptions = sortOptions.map(opt => ({
-            ...opt,
-            selected: opt.value === selectedSort
-        }));
 
 
     } catch (err) {
         console.log("Error fetching categories:", err.message);
         res.locals.categories = [];
-        res.locals.sortOptions = [];
     }
 
     res.locals.messages = req.flash();
