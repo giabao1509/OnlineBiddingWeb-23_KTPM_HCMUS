@@ -1,6 +1,7 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import * as orderService from '../services/order.service.js';
+import * as accountService from '../services/account.service.js'
 import { isAuth, isSeller, isBuyer} from '../middlewares/auth.mdw.js';
 import uploadOrder from '../utils/uploadOrder.js';
 
@@ -23,12 +24,17 @@ router.get('/:id', isAuth, async (req, res) => {
         req.flash('error', 'You are not allowed to view this order.');
         return res.redirect('/');
     }
+    
+    const bidder = await accountService.getUserExternalInfo(Number(order.winner_bidder_id));
+    const bidderInfo = bidder[0]
+    bidderInfo.rating_percent = Number(bidderInfo.rating_score) * 100;
+    console.log('bidderInfo:', bidderInfo);
 
-    const bidderInfo = await orderService.getBidderInfoByOrderId(orderId);
-    //console.log('bidderInfo:', bidderInfo);
 
-    const sellerInfo = await orderService.getSellerInfoByOrderId(orderId);
-    //console.log('sellerInfo:', sellerInfo);
+    const seller = await accountService.getUserExternalInfo(Number(order.seller_id));
+    const sellerInfo = seller[0]
+    sellerInfo.rating_percent = Number(sellerInfo.rating_score) * 100;
+    console.log('sellerInfo:', sellerInfo);
 
 
     const orderstepMap = {
@@ -79,19 +85,19 @@ router.get('/:id', isAuth, async (req, res) => {
         sender
         };
     });
-    console.log('formattedMessages:', formattedMessages);
+    //console.log('formattedMessages:', formattedMessages);
     res.render('Order/completeorder', {
         order,
         formattedMessages,
         isOrderBuyer: Number(req.user.id) === order.winner_bidder_id,
         isOrderSeller: Number(req.user.id) === order.seller_id,
-        bidderInfo,
-        sellerInfo
+        bidderInfo: bidderInfo,
+        sellerInfo: sellerInfo
     });
 });
 
 
-router.post('/:id/payment', isAuth, isBuyer, uploadOrder.single('paymentProof'), async (req, res) => {
+router.post('/:id/payment', isAuth, uploadOrder.single('paymentProof'), async (req, res) => {
     const orderId = req.params.id;
     const { address, phone, notes } = req.body;
     console.log('orderId:', orderId);
@@ -116,7 +122,7 @@ router.post('/:id/payment', isAuth, isBuyer, uploadOrder.single('paymentProof'),
 });
 
 
-router.post('/:id/confirm_delivery', isAuth, isSeller, uploadOrder.single('shippingProof'), async (req, res) => {
+router.post('/:id/confirm_delivery', isAuth, uploadOrder.single('shippingProof'), async (req, res) => {
     const orderId = req.params.id;
 
     const shippingProofUrl = req.file ? req.file.url : null;
@@ -132,7 +138,7 @@ router.post('/:id/confirm_delivery', isAuth, isSeller, uploadOrder.single('shipp
 });
 
 
-router.post('/:id/confirm_received', isAuth, isBuyer, async (req, res) => {
+router.post('/:id/confirm_received', isAuth, async (req, res) => {
     const orderId = req.params.id;
     console.log('orderId:', orderId);
     await orderService.updateOrderStatus(orderId, 'Completed');

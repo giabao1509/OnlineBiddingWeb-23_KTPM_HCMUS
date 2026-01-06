@@ -15,7 +15,6 @@
     <div class="col-lg-8">
       <!-- User Avatar & Rating Card -->
       <a href="/accounts/external_profile/{{user.id}}" class="text-decoration-none text-dark">
-      <!-- User Avatar & Rating Card -->
       <div class="card border-0 shadow-sm mb-4 avatar-card profile-hover-card">
         <div class="card-body p-4">
           <div class="d-flex align-items-center">
@@ -37,7 +36,7 @@
 
                 <!-- Rating Percentage -->
                 <div class="d-flex align-items-center">
-                  <i class="bi bi-shield-check me-2 {{#if (gte user.rating_percent 80)}}text-success{{else if (gte user.rating_percent 50)}}text-warning{{else}}text-danger{{/if}}"></i>
+                  <i class="bi bi-star-fill me-1 {{#if (gte user.rating_percent 80)}}text-success{{else if (gte user.rating_percent 50)}}text-warning{{else}}text-danger{{/if}}"></i>
                   <span class="badge {{#if (gte user.rating_percent 80)}}bg-success{{else if (gte user.rating_percent 50)}}bg-warning{{else}}bg-danger{{/if}} rounded-pill px-3 py-2 fs-6">
                     {{user.rating_percent}}%
                   </span>
@@ -343,7 +342,7 @@
     return name?.trim()?.charAt(0)?.toUpperCase() || '?';
   }
 
-  const fullName = "{{user.full_name}}";
+  const fullName = "{{sellerInfo.full_name}}";
   const avatar = document.getElementById('avatar');
 
   avatar.textContent = getInitial(fullName);

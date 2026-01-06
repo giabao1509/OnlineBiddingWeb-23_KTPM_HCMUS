@@ -30,7 +30,7 @@
 
                 <!-- Rating Percentage -->
                 <div class="d-flex align-items-center">
-                  <i class="bi bi-shield-check me-2 {{#if (gte userInfo.rating_percent 80)}}text-success{{else if (gte userInfo.rating_percent 50)}}text-warning{{else}}text-danger{{/if}}"></i>
+                  <i class="bi bi-star-fill me-1 {{#if (gte userInfo.rating_percent 80)}}text-success{{else if (gte userInfo.rating_percent 50)}}text-warning{{else}}text-danger{{/if}}"></i>
                   <span class="badge {{#if (gte userInfo.rating_percent 80)}}bg-success{{else if (gte userInfo.rating_percent 50)}}bg-warning{{else}}bg-danger{{/if}} rounded-pill px-3 py-2 fs-6">
                     {{userInfo.rating_percent}}%
                   </span>

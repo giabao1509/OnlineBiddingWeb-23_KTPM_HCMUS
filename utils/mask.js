@@ -1,15 +1,18 @@
-export function maskName(name, maskLength = 5) {
+export function maskName(name) {
     if (!name) return "Anonymous";
 
     name = name.trim();
-    if (name.length === 0) return "Anonymous";
+    if (!name) return "Anonymous";
 
-    // Split name into words
-    const parts = name.split(/\s+/);
-    const lastName = parts[parts.length - 1];
+    // bỏ khoảng trắng
+    const clean = name.replace(/\s+/g, "");
 
-    // Create fixed-length mask
-    const mask = "*".repeat(Math.max(1, maskLength));
+    const chars = Array.from(clean);
 
-    return mask + lastName;
+    const result = [];
+    for (let i = 0; i < chars.length; i += 2) {
+        result.push(chars[i]);
+    }
+
+    return result.join("*");
 }

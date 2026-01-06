@@ -332,7 +332,7 @@ router.post('/profile/upgrade_seller', isAuth, async (req, res) => {
     }
 });
 
-router.get('/external_profile/:id', isAuth,  async (req, res) => {
+router.get('/external_profile/:id',  async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = 3;
     const offset = (page - 1) * limit;
@@ -360,7 +360,7 @@ router.get('/external_profile/:id', isAuth,  async (req, res) => {
 });
 
 
-router.get('/external_profile/:id/reviews', isAuth, async (req, res) => {
+router.get('/external_profile/:id/reviews', async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = 3;
     const offset = (page - 1) * limit;

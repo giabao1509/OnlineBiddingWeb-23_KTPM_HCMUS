@@ -30,7 +30,7 @@ router.post('/create_product', isAuth, isSeller, upload.array('images', 10), asy
             bidStep,
             buyNowPrice,
             duration,
-            autoExtend,
+            allowNew,
             description
         } = req.body;
 
@@ -43,7 +43,7 @@ router.post('/create_product', isAuth, isSeller, upload.array('images', 10), asy
             starting_price: Number(startPrice),
             buy_now_price: buyNowPrice ? Number(buyNowPrice) : null,
             bid_step: Number(bidStep),
-            //auto_extend: autoExtend === 'on',   
+            allow_new_user: allowNew === 'on',   
             end_time: new Date(
                 Date.now() + Number(duration) * 24 * 60 * 60 * 1000
             )

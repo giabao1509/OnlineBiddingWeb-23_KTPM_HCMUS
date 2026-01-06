@@ -1,5 +1,6 @@
 import express from 'express';
 import * as productsService from '../services/product.service.js';
+import * as accountService from '../services/account.service.js'
 import { maskName } from '../utils/mask.js';
 import { isAuth } from '../middlewares/auth.mdw.js';
 import * as bidsService from '../services/bids.service.js';
@@ -92,7 +93,7 @@ router.get('/detail/:id', async (req, res) => {
     product.isOwner = Number(res.locals.user.id) === product.seller_id;
   }
 
-  const relatedProducts = await productsService.getAllRelatedProducts(auctionID, Number(product.category_id));
+  
 
   /* ========= IMAGES ========= */
   const photos = await productsService.getAllProductsPhotos([auctionID]);
@@ -109,19 +110,14 @@ router.get('/detail/:id', async (req, res) => {
       bidder_name: maskName(b.bidder_name)
     }));
   }
-
-  
-
-  console.log('Bidding history:', product.bidHistory);
   product.totalBid = product.bidHistory.length
-  console.log('Total bids:', product.totalBid);
-  const top_bidder = await productsService.getTop1Bidders(auctionID);
-  //console.log('Top bidder:', top_bidder);
 
-  product.top_bidder = top_bidder ? {
-    ...top_bidder,
-    bidder_name: maskName(top_bidder.bidder_name)
-  } : null; 
+
+
+  const seller = await accountService.getUserExternalInfo(product.seller_id);
+  const sellerInfo = seller[0]
+  sellerInfo.rating_percent = Number(sellerInfo.rating_score) * 100;
+  console.log('sellerInfo:', sellerInfo);
   
 
   /* ========= TIME REMAINING ========= */
@@ -165,17 +161,15 @@ router.get('/detail/:id', async (req, res) => {
     c.reply = comments.filter(r => r.parent_id === c.comment_id);
   });
 
-  
+
 
   product.comments = roots;
 
   if (product.comments.length > 0) {
     product.comments = product.comments.map(c => ({
       ...c,
-      user_name: maskName(c.user_name),
       reply: c.reply.map(r => ({
-        ...r,
-        user_name: maskName(r.user_name)
+        ...r 
       }))
     }));
   }
@@ -183,7 +177,16 @@ router.get('/detail/:id', async (req, res) => {
   const total_comments = await productsService.countProductComments(auctionID);
   product.total_comments = total_comments?.count || 0;
 
-  res.render('Products/detail', { product, relatedProducts });
+
+
+
+  const relatedProducts = await productsService.getAllRelatedProducts(auctionID, Number(product.category_id));
+
+  res.render('Products/detail', { 
+    product, 
+    relatedProducts, 
+    sellerInfo 
+  });
 });
 
 router.post('/detail/:id/description/edit', isAuth, async (req, res) => {
