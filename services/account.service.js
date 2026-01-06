@@ -82,6 +82,19 @@ export function upgradeToSeller(customerId) {
         .update({ role: 1 });
 }
 
+export function getUserRatingById(userId) {
+  return db('user_account as ua')
+    .leftJoin('user_ratings as ur', 'ua.id', 'ur.reviewee_id')
+    .where('ua.id', userId)
+    .groupBy('ua.id', 'ua.rating_score')
+    .select(
+      'ua.rating_score',
+      db.raw('COUNT(ur.rating_id) as total_reviews')
+    )
+    .first();
+}
+
+
 export function getAllUserRatings(userId, limit, offset) {
   return db('user_ratings as ur')
     .join('user_account as u', 'ur.reviewer_id', 'u.id')

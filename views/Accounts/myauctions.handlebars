@@ -212,7 +212,7 @@
                                 <i class="bi bi-chevron-right text-muted fs-5 me-3"></i>
                             </div>
                         </a>
-                        <form method="POST" action="/accounts/remove_watchlist" class="d-inline">
+                        <form method="POST" action="/products/remove_from_watchlist/{{this.auction_id}}" class="d-inline">
                             <input type="hidden" name="auction_id" value="{{this.auction_id}}">
                             <button
                             type="submit"
@@ -271,7 +271,7 @@
             {{#if (eq activeTab 'active')}}
             <div class="list-group list-group-flush">
               {{#each activeAuctions}}
-              <a href="/products/detail/{{this.id}}" class="list-group-item list-group-item-action border-0 border-bottom p-3">
+              <a href="/products/detail/{{this.auction_id}}" class="list-group-item list-group-item-action border-0 border-bottom p-3">
                 <div class="d-flex align-items-center">
                     <img src="{{this.image_url}}" class="rounded me-3 shadow-sm" style="width:80px; height:80px; object-fit:cover;" alt="{{this.name}}">
                     <div class="flex-grow-1">

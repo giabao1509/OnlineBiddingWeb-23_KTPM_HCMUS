@@ -5,8 +5,9 @@ export function getProductsDetailById(id) {
     return db('auction as a')
     .join('categories as c', 'c.id', 'a.category_id')
     .join('user_account as u', 'u.id', 'seller_id')
+    .leftJoin('orders as o', 'o.auction_id', 'a.auction_id')
     .where('a.auction_id', id)
-    .select('a.*', 'c.cat_name', 'u.full_name as seller_name', 'u.email as seller_email', 'u.address as seller_address')
+    .select('a.*', 'c.cat_name', 'u.full_name as seller_name', 'u.email as seller_email', 'u.address as seller_address', 'o.id as order_id')
     .first()
 }
 
@@ -49,6 +50,11 @@ export function filterByCategory(category_name) {
     .orWhere('p.cat_name', category_name)
 }
 
+export function updateProduct(id, updatedData) {
+    return db('auction')
+        .where('auction_id', id)
+        .update(updatedData);
+}
 
 export function searchByCategoryKeywordAndSort(category_name, keyword, limit, offset, sortField, sortOrder) {
     let query = db('auction as a')

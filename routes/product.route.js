@@ -99,6 +99,7 @@ router.get('/', async (req, res) => {
 });
 
 router.get('/detail/:id', async (req, res) => {
+
   const auctionID = Number(req.params.id) || 0;
 
   const product = await productsService.getProductsDetailById(auctionID);
@@ -106,8 +107,14 @@ router.get('/detail/:id', async (req, res) => {
     product.isOwner = Number(res.locals.user.id) === product.seller_id;
   }
 
-  
+  console.log('product:', product);
 
+  
+  if (res.locals.user) {
+    if (product.winner_bidder_id === Number(res.locals.user.id) || product.seller_id === Number(res.locals.user.id)) {
+    res.redirect(`/orders/${Number(product.order_id)}`);
+    }
+  }
   /* ========= IMAGES ========= */
   const photos = await productsService.getAllProductsPhotos([auctionID]);
   product.images = photos || [];
@@ -145,6 +152,8 @@ router.get('/detail/:id', async (req, res) => {
 
       console.log('topBidderInfo:', topBidderInfo);
   }
+
+  
 
   /* ========= TIME REMAINING ========= */
   product.time_remaining = displayTimeRemaining(product.end_time);
@@ -210,9 +219,49 @@ router.post('/detail/:id/description/edit', isAuth, async (req, res) => {
 
 router.post('/detail/:id/bid', isAuth, async (req, res) => {
     const { max_bid, max_bid_display } = req.body
-    console.log('Max bid (raw):', max_bid);
+    
     const auction_id = req.params.id;
+    console.log('Placing bid on auction ID:', auction_id);
     const bidder_id = req.user.id;
+    const product = await productsService.getProductsDetailById(auction_id);
+    //console.log('Product:', product);
+    const userRating = await accountService.getUserRatingById(bidder_id);
+    console.log('User Rating:', userRating);
+
+    if (userRating && product.allow_new_user === false && Number(userRating.rating_score) === 0 && Number(userRating.total_reviews) === 0) {
+        req.flash('error', 'New users are not allowed to bid on this product.');
+        const retUrl = req.headers.referer || '/';
+        return res.redirect(retUrl);
+    }
+
+    if (userRating && Number(userRating.rating_score) < 0.8  && Number(userRating.total_reviews) !== 0) {
+        req.flash('error', 'Your rating is too low to place a bid.');
+        const retUrl = req.headers.referer || '/';
+        return res.redirect(retUrl);
+    }
+
+    
+
+    if ( max_bid > product.buy_now_price && product.buy_now_price !== null) {
+        await productsService.updateProduct(auction_id, {
+            winner_bidder_id: bidder_id,
+            current_price: product.buy_now_price,
+            end_time: new Date(),
+            status: 'Completed'
+        });
+
+        const bid = {
+        auction_id: Number(auction_id),
+        bidder_id: Number(bidder_id),
+        max_bid: Number(product.buy_now_price),
+        amount: Number(product.buy_now_price)
+        };
+        await bidsService.placeBid(bid);
+        req.flash('success', 'You have successfully bought the product at the Buy Now price.');
+        const retUrl = req.headers.referer || '/';
+        return res.redirect(retUrl);
+    }
+
     const bid = {
         auction_id: Number(auction_id),
         bidder_id: Number(bidder_id),
@@ -240,12 +289,48 @@ router.post('/detail/:id/bid/reject', isAuth, async (req, res) => {
 router.post('/add_to_watchlist/:id', isAuth, async (req, res) => {
     const auction_id = req.params.id;
     const user_id = req.user.id;
+    try {
     await productsService.addToWatchList({user_id: Number(user_id), auction_id: Number(auction_id)});
+    } catch (err) {
+        req.flash('error', 'This product is already in your watchlist.');
+        const retUrl = req.headers.referer || '/';
+        return res.redirect(retUrl);
+    }
     req.flash('success', 'Product added to your watchlist.');
     const retUrl = req.headers.referer || '/';
     res.redirect(retUrl);
 });
 
+router.post('/remove_from_watchlist/:id', isAuth, async (req, res) => {
+    const auction_id = req.params.id;
+    const user_id = req.user.id;
+    await productsService.removeFromWatchList(Number(user_id), Number(auction_id));
+    req.flash('success', 'Product removed from your watchlist.');
+    const retUrl = req.headers.referer || '/';
+    res.redirect(retUrl);
+});
+
+router.post('/detail/:id/buy_now', isAuth, async (req, res) => {
+    const auction_id = req.params.id;
+    const buyer_id = req.user.id;
+    const product = await productsService.getProductsDetailById(auction_id);
+    await productsService.updateProduct(auction_id, {
+        winner_bidder_id: buyer_id,
+        current_price: product.buy_now_price,
+        end_time: new Date(),
+        status: 'Completed'
+    });
+    const bid = {
+        auction_id: Number(auction_id),
+        bidder_id: Number(buyer_id),
+        max_bid: Number(product.buy_now_price),
+        amount: Number(product.buy_now_price)
+    };
+    await bidsService.placeBid(bid);
+    req.flash('success', 'You have successfully bought the product at the Buy Now price.');
+    const retUrl = req.headers.referer || '/';
+    res.redirect(retUrl);
+});
 
 router.post('/detail/:id/comments/create', isAuth, async (req, res) => {
     const { content, parent_id } = req.body;

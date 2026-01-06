@@ -55,23 +55,6 @@ document.querySelector('#formSignIn').addEventListener('submit', function(e) {
 });
 </script>
 
-<script>
-    {{#if error}}
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: "{{{error}}}"
-        });
-    {{/if}}
-
-    {{#if success}}
-        Swal.fire({
-            icon: 'success',
-            title: 'Success',
-            text: "{{{success}}}"
-        });
-    {{/if}}
-</script>
 
 
 <script src="https://accounts.google.com/gsi/client?hl=en" async defer></script>

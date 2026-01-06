@@ -9,6 +9,11 @@
     background: #f8f9fa;
 }
 
+#carousel-thumbs {
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
 .carousel-control-prev,
 .carousel-control-next {
     width: 50px;
@@ -180,71 +185,122 @@
 {{/section}}
 
 {{#section 'js'}}
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-  const displayInput = document.getElementById("max_bid_display");
-  const hiddenInput = document.getElementById("max_bid");
-  const confirmAmount = document.getElementById("confirmBidAmount");
-  const confirmBtn = document.getElementById("confirmBidBtn");
-  const bidForm = displayInput.closest("form");
+    document.addEventListener("DOMContentLoaded", function () {
+        const displayInput = document.getElementById("max_bid_display");
+        const hiddenInput = document.getElementById("max_bid");
+        const confirmAmount = document.getElementById("confirmBidAmount");
+        const confirmBtn = document.getElementById("confirmBidBtn");
+        const bidForm = displayInput.closest("form");
+        const currentPrice = {{product.current_price}};
+        const bidStep = {{product.bid_step}};
+        const modal = document.getElementById("confirmBidModal");
+        const priceAtStart = currentPrice > 0 ? currentPrice: {{product.starting_price}};   
+        modal.addEventListener("show.bs.modal", function () {
+            if (!hiddenInput.value || Number(hiddenInput.value) <= 0) {
+            confirmAmount.textContent = "Invalid amount";
+            confirmBtn.disabled = true;
+            return;
+            }
 
-  const modal = document.getElementById("confirmBidModal");
-  modal.addEventListener("show.bs.modal", function () {
-    if (!hiddenInput.value || Number(hiddenInput.value) <= 0) {
-      confirmAmount.textContent = "Invalid amount";
-      confirmBtn.disabled = true;
-      return;
-    }
+            confirmBtn.disabled = false;
+            confirmAmount.textContent = new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+            }).format(hiddenInput.value);
+        });
 
-    confirmBtn.disabled = false;
-    confirmAmount.textContent = new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(hiddenInput.value);
-  });
+        confirmBtn.addEventListener("click", function () {
+            console.log("Bid value:", hiddenInput.value);
+            if ((Number(hiddenInput.value) - priceAtStart) % bidStep !== 0) {
+                Swal.fire({
+                    title: 'Invalid Bid',
+                    text: `Your bid must be multiple of the bid step`,
+                    icon: 'error'
+                });
+            return;
+            }
 
-  confirmBtn.addEventListener("click", function () {
-    bidForm.submit();
-  });
-});
-</script>
+            if (hiddenInput.value <= priceAtStart) {
+                Swal.fire({
+                    title: 'Invalid Bid',
+                    text: `Your bid must be higher than the current price`,
+                    icon: 'error'
+                });
+            return;
+            }
 
-<script>
-function setBidToReject(bidId, bidderName, amount) {
-    document.getElementById('modalBidId').value = bidId;
-    document.getElementById('modalBidderName').textContent = bidderName;
-    document.getElementById('modalBidAmount').textContent = amount;
-}
-</script>
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const displayInput = document.getElementById("max_bid_display");
-    const hiddenInput = document.getElementById("max_bid");
-    
-    const currentPrice = {{product.current_price}};
-    const startingPrice = {{product.starting_price}};
-    const bidStep = {{product.bid_step}};
-    const initialBid = currentPrice > 0 ? currentPrice + bidStep : startingPrice + bidStep;
-
-    function formatCurrency(value) {
-        if (!value) return '';
-        const number = Number(value.toString().replace(/\D/g, ''));
-        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(number);
-    }
-
-    displayInput.value = formatCurrency(initialBid);
-    hiddenInput.value = initialBid; // <--- gán hidden input ban đầu
-
-    displayInput.addEventListener('input', function() {
-        const caret = displayInput.selectionStart;
-        const numeric = displayInput.value.replace(/\D/g, '');
-        displayInput.value = numeric ? formatCurrency(numeric) : '';
-        displayInput.setSelectionRange(caret, caret);
-        hiddenInput.value = numeric;
+            bidForm.submit();
+        });
     });
-});
+</script>
+
+<script>
+    function setBidToReject(bidId, bidderName, amount) {
+        document.getElementById('modalBidId').value = bidId;
+        document.getElementById('modalBidderName').textContent = bidderName;
+        document.getElementById('modalBidAmount').textContent = amount;
+    }
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const displayInput = document.getElementById("max_bid_display");
+        const hiddenInput = document.getElementById("max_bid");
+        
+        const currentPrice = {{product.current_price}};
+        const startingPrice = {{product.starting_price}};
+        const bidStep = {{product.bid_step}};
+        const initialBid = currentPrice > 0 ? currentPrice + bidStep : startingPrice + bidStep;
+
+        function formatCurrency(value) {
+            if (!value) return '';
+            const number = Number(value.toString().replace(/\D/g, ''));
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(number);
+        }
+
+        function parseCurrency(str) {
+            return Number(str.replace(/\D/g, '')) || 0;
+        }
+
+        displayInput.value = formatCurrency(initialBid);
+        hiddenInput.value = initialBid;
+
+        // Input event - allow manual typing
+        displayInput.addEventListener('input', function() {
+            const caret = displayInput.selectionStart;
+            const numeric = displayInput.value.replace(/\D/g, '');
+            displayInput.value = numeric ? formatCurrency(numeric) : '';
+            displayInput.setSelectionRange(caret, caret);
+            hiddenInput.value = numeric;
+        });
+
+        // Increase bid button
+        const increaseBtn = document.getElementById('increaseBid');
+        if (increaseBtn) {
+            increaseBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const currentValue = parseCurrency(displayInput.value);
+                const newValue = currentValue + bidStep;
+                displayInput.value = formatCurrency(newValue);
+                hiddenInput.value = newValue;
+            });
+        }
+
+        // Decrease bid button
+        const decreaseBtn = document.getElementById('decreaseBid');
+        if (decreaseBtn) {
+            decreaseBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const currentValue = parseCurrency(displayInput.value);
+                const minPrice = currentPrice > 0 ? currentPrice + bidStep : startingPrice + bidStep;
+                const newValue = Math.max(currentValue - bidStep, minPrice);
+                displayInput.value = formatCurrency(newValue);
+                hiddenInput.value = newValue;
+            });
+        }
+    });
 </script>
 
 <script>
@@ -271,25 +327,25 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 <script>
-  function stringToColor(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    function stringToColor(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+
+        const hue = Math.abs(hash) % 360;
+        return `hsl(${hue}, 65%, 50%)`;
     }
 
-    const hue = Math.abs(hash) % 360;
-    return `hsl(${hue}, 65%, 50%)`;
-  }
+    function getInitial(name) {
+        return name?.trim()?.charAt(0)?.toUpperCase() || '?';
+    }
 
-  function getInitial(name) {
-    return name?.trim()?.charAt(0)?.toUpperCase() || '?';
-  }
+    const fullName = "{{product.seller_name}}";
+    const avatar = document.getElementById('avatar');
 
-  const fullName = "{{product.seller_name}}";
-  const avatar = document.getElementById('avatar');
-
-  avatar.textContent = getInitial(fullName);
-  avatar.style.backgroundColor = stringToColor(fullName);
+    avatar.textContent = getInitial(fullName);
+    avatar.style.backgroundColor = stringToColor(fullName);
 
     const topBidderName = "{{#if topBidderInfo}}{{topBidderInfo.full_name}}{{/if}}";
     const avatarTopBidder = document.getElementById('avatarTopBidder');
@@ -298,12 +354,42 @@ document.addEventListener("DOMContentLoaded", function() {
         avatarTopBidder.style.backgroundColor = stringToColor(topBidderName);
     }
 
-  // Chạy cho tất cả avatar
-  document.querySelectorAll('.avatar').forEach(avatar => {
-    const name = avatar.dataset.name;
-    avatar.textContent = getInitial(name);
-    avatar.style.backgroundColor = stringToColor(name);
-  });
+    document.querySelectorAll('.avatar').forEach(avatar => {
+        const name = avatar.dataset.name;
+        avatar.textContent = getInitial(name);
+        avatar.style.backgroundColor = stringToColor(name);
+    });
+</script>
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const thumbs = document.querySelectorAll('#carousel-thumbs .thumb-img');
+    const carouselEl = document.getElementById('auctionCarousel');
+
+    function clearThumbActive() {
+        thumbs.forEach(t => t.classList.remove('active', 'border-dark', 'border-3'));
+    }
+
+    // Click on thumbnail: visually mark active (Bootstrap will change slide via data attributes)
+    thumbs.forEach(thumb => {
+        thumb.addEventListener('click', function () {
+            clearThumbActive();
+            this.classList.add('active', 'border-dark', 'border-3');
+        });
+    });
+
+    // Sync thumbnail active state when carousel slide changes
+    if (carouselEl && typeof bootstrap !== 'undefined') {
+        carouselEl.addEventListener('slid.bs.carousel', function (evt) {
+            const activeIndex = evt.to;
+            clearThumbActive();
+            const newActive = document.querySelector(`#carousel-thumbs [data-bs-slide-to='${activeIndex}']`);
+            if (newActive) newActive.classList.add('active', 'border-dark', 'border-3');
+        });
+    }
+});
 </script>
 {{/section}}
 
@@ -330,7 +416,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     {{#if product.images}}
                         {{#each product.images}}
                         <div class="carousel-item {{#if this.is_thumbnail}}active{{/if}}">
-                            <img src="{{this.image_url}}" class="d-block w-100" alt="{{../product.name}}" style="max-height: 500px; object-fit: contain; padding: 20px;">
+                            <img src="{{this.image_url}}" class="d-block w-100" alt="{{../product.name}}" style="height: 500px; object-fit: contain; padding: 20px;">
                         </div>
                         {{/each}}
                     {{else}}
@@ -354,7 +440,7 @@ document.addEventListener("DOMContentLoaded", function() {
                          class="img-thumbnail thumb-img {{#if this.is_thumbnail}}active border-dark border-3{{/if}}" 
                          style="width: 100px; height: 100px; object-fit: cover; flex-shrink: 0;"
                          data-bs-target="#auctionCarousel" 
-                         data-bs-slide-to="{{@index}}"
+                         data-bs-slide-to="{{@index }}"
                          alt="Thumbnail">
                     {{/each}}
                 {{/if}}
@@ -555,14 +641,21 @@ document.addEventListener("DOMContentLoaded", function() {
                                     <form action="/products/detail/{{product.auction_id}}/bid" method="POST">
                                         <div class="mb-3">
                                             <input type="hidden" id="max_bid" name="max_bid">
-                                            <label for="max_bid" class="form-label fw-semibold">Your Maximum Bid</label>
+                                            <label for="max_bid_display" class="form-label fw-semibold">Your Maximum Bid</label>
                                             <small class="text-muted d-block mb-2">Enter the highest amount you're willing to pay</small>
                                             <div class="input-group input-group-lg">
-                                                <input type="text" class="form-control" id="max_bid_display" name="max_bid_display" placeholder="Enter amount" required>
+                                                <button type="button" id="decreaseBid" class="btn btn-outline-dark rounded-start">
+                                                    <i class="bi bi-dash-lg"></i>
+                                                </button>
+                                                <input type="text" class="form-control" id="max_bid_display" placeholder="Enter amount" required>
+                                                <button type="button" id="increaseBid" class="btn btn-outline-dark rounded-end">
+                                                    <i class="bi bi-plus-lg"></i>
+                                                </button>
                                             </div>
                                         </div>
                                         <div class="d-grid">
                                             <button type="button"
+                                                    id="submitBidBtn"
                                                     class="btn btn-outline-dark btn-lg"
                                                     data-bs-toggle="modal"
                                                     data-bs-target="#confirmBidModal">
