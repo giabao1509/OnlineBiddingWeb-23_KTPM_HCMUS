@@ -12,7 +12,7 @@ export function addOTP(otp) {
 }
 
 export function getAccountEmailById(id) {
-    return db('user_account').where('id', id).select('email').first();
+    return db('user_account').where('id', id).select('email', 'full_name').first();
 }
 
 export function getOTP(email) {

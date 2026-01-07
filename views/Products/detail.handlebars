@@ -391,6 +391,23 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 </script>
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const replyButtons = document.querySelectorAll('.reply-btn');
+    
+    replyButtons.forEach(btn => {
+        btn.addEventListener('click', function () {
+            const replyForm = this.closest('.comment-item').querySelector('.reply-form');
+            if (replyForm) {
+                replyForm.classList.toggle('d-none');
+            }
+        });
+    });
+});
+</script>
 {{/section}}
 
 <div class="container py-4">

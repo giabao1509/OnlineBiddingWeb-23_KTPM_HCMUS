@@ -46,8 +46,8 @@ router.post('/signup', verifyCaptcha, async (req, res) => {
     const recordedOTP = await accountService.getOTP(req.body.email)
 
     if (!recordedOTP) {
+        req.flash('error', 'You have not requested an OTP or the OTP has expired.');
         return res.render('Accounts/signup', {
-            error: "You haven't requested an OTP or the OTP has expired.",
             RECAPTCHA_SITE_KEY: process.env.RECAPTCHA_SITE_KEY,
             fullName: req.body.fullName,
             email: req.body.email,
@@ -72,9 +72,8 @@ router.post('/signup', verifyCaptcha, async (req, res) => {
 
     
     await accountService.deleteOTP(req.body.email);
-
+    req.flash('success', 'Account created successfully! You can now log in.');
     return res.render('Accounts/signup', {
-        success: "Account created successfully! You can now log in.",
         RECAPTCHA_SITE_KEY: process.env.RECAPTCHA_SITE_KEY,
     });
 });
@@ -138,7 +137,8 @@ router.post('/signin', async (req, res) => {
     res.cookie('authToken', token, { httpOnly: true, maxAge: tokenAge });
 
     req.flash('success', 'Signin successfully.');
-    res.redirect('/');
+    const retUrl = req.headers.referer || '/';
+    res.redirect(retUrl);
 });
 
 
@@ -189,8 +189,8 @@ router.post('/google-signin', async (req, res) => {
   } catch (err) {
     //console.error(err);
     //res.status(401).json({ message: 'Invalid Google token' });
+    req.flash('error', 'Google sign-in failed. Please try again.');
     res.render('Accounts/signin', { 
-        error: 'Google sign-in failed. Please try again.',
         RECAPTCHA_SITE_KEY: process.env.RECAPTCHA_SITE_KEY
     });
   }
@@ -239,7 +239,7 @@ router.post('/forgotpassword', async (req, res) => {
     
     res.cookie('resetToken', token, { httpOnly: true, maxAge: 5 * 60 * 1000 });
 
-    
+    req.flash('success', 'An OTP has been sent to your email. Please verify to reset your password.');
     res.redirect('/accounts/verifyotp');
 });
 
@@ -264,16 +264,19 @@ router.post('/verifyotp', async (req, res) => {
         const decoded = verifyToken(token);  
         email = decoded.email;
     } catch(err) {
-        return res.render("Accounts/verifyotp", { error: "Invalid or expired token." });
+        req.flash('error', 'Invalid or expired token.');
+        return res.render("Accounts/verifyotp");
     }
 
     const recordedOTP = await accountService.getOTP(email);
     if (!recordedOTP) {
-        return res.render("Accounts/verifyotp", { error: "OTP expired or not found." });
+        req.flash('error', 'OTP expired or not found.');
+        return res.render("Accounts/verifyotp");
     }
 
     if (recordedOTP.code !== otp) {
-        return res.render("Accounts/verifyotp", { error: "Invalid OTP." });
+        req.flash('error', 'Invalid OTP.');
+        return res.render("Accounts/verifyotp");
     }
 
     
@@ -293,7 +296,8 @@ router.post('/resetpassword', async (req, res) => {
     const token = req.cookies.resetToken;
 
     if (!token) {
-        return res.render("Accounts/resetpassword", { error: "Missing or expired token." });
+        req.flash('error', 'Missing or expired token.');
+        return res.render("Accounts/resetpassword");
     }
 
     let email;
@@ -301,7 +305,8 @@ router.post('/resetpassword', async (req, res) => {
         const decoded = verifyToken(token);  
         email = decoded.email;
     } catch(err) {
-        return res.render("Accounts/resetpassword", { error: "Invalid or expired token." });
+        req.flash('error', 'Invalid or expired token.');
+        return res.render("Accounts/resetpassword");
     }
 
     const newPassword = req.body.password
@@ -310,7 +315,8 @@ router.post('/resetpassword', async (req, res) => {
 
     await accountService.updatePassword(email, hashedPassword)
     res.clearCookie('resetToken')
-    res.render('Accounts/resetpassword', {success: "Password has been changed.", disabled: true });
+    req.flash('success', 'Password has been changed.');
+    res.render('Accounts/resetpassword', { disabled: true });
 });
 
 router.get('/profile', isAuth, async (req, res) => {
@@ -427,7 +433,7 @@ router.get('/external_profile/:id/reviews', async (req, res) => {
     const userId = req.params.id;
 
     const reviews = await accountService.getAllUserRatings(userId, limit, offset);
-    console.log('Fetched reviews:', reviews);
+    //console.log('Fetched reviews:', reviews);
     res.json({
     reviews,
     hasMore: reviews.length === limit

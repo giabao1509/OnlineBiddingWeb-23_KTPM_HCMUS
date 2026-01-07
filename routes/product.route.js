@@ -5,7 +5,7 @@ import { maskName } from '../utils/mask.js';
 import { isAuth } from '../middlewares/auth.mdw.js';
 import * as bidsService from '../services/bids.service.js';
 import { buildCommentTree, appendDescriptionWithDate, displayTimeRemaining } from '../utils/other.js';
-import { sendOutBidMail } from '../utils/mail.js';
+import * as emailService from '../utils/mail.js';
 const router = express.Router();
 
 
@@ -187,23 +187,33 @@ router.get('/detail/:id', async (req, res) => {
 });
 
 router.post('/detail/:id/description/edit', isAuth, async (req, res) => {
-  const productId = Number(req.params.id);
-  const newContent = req.body.description || '';
+    const productId = Number(req.params.id);
+    const newContent = req.body.description || '';
+    const participants = await productsService.getBiddersParticipants(Number(productId));
+    const product = await productsService.getProductsDetailById(productId);
+    console.log('participants for description update:', participants);
+   
+    await Promise.all(participants.map(p => 
+        emailService.sendChangeDescriptionEmail(
+            p.email,
+            product.name,
+            p.full_name,
+            productId
+        )
+    ));
+  
+    if (!product) {
+        req.flash('error', 'Product not found');
+        return res.redirect('back');
+    }
 
-  // Lấy mô tả cũ từ DB
-  const product = await productsService.getProductsDetailById(productId);
-  if (!product) {
-      req.flash('error', 'Product not found');
-      return res.redirect('back');
-  }
+    const updatedDescription = appendDescriptionWithDate(product.description, newContent);
 
-  const updatedDescription = appendDescriptionWithDate(product.description, newContent);
+    await productsService.updateProductDescription(productId, updatedDescription);
 
-  await productsService.updateProductDescription(productId, updatedDescription);
-
-  req.flash('success', 'Product description updated.');
-  const retUrl = req.headers.referer || '/';
-  res.redirect(retUrl);
+    req.flash('success', 'Product description updated.');
+    const retUrl = req.headers.referer || '/';
+    res.redirect(retUrl);
 });
 
 router.post('/detail/:id/bid', isAuth, async (req, res) => {
@@ -231,7 +241,7 @@ router.post('/detail/:id/bid', isAuth, async (req, res) => {
 
     
 
-    if ( max_bid > product.buy_now_price && product.buy_now_price !== null) {
+    if (product.buy_now_price && (Number(max_bid) > Number(product.buy_now_price))) {
         await productsService.updateProduct(auction_id, {
             winner_bidder_id: bidder_id,
             current_price: product.buy_now_price,
@@ -250,13 +260,33 @@ router.post('/detail/:id/bid', isAuth, async (req, res) => {
         await bidsService.updateTopBidder(Number(auction_id), bidId);
         const updatedProduct = await productsService.getProductsDetailById(auction_id);
 
-        if (product.winner_bidder_id && updatedProduct.winner_bidder_id && product.winner_bidder_id !== updatedProduct.winner_bidder_id) {
-            const outBidderEmail = await accountService.getAccountEmailById(product.winner_bidder_id);
-            await sendOutBidMail(
-                outBidderEmail.email,
+        if (product.winner_bidder_id !== updatedProduct.winner_bidder_id) {
+            const winnerBidderEmail = await accountService.getAccountEmailById(updatedProduct.winner_bidder_id);
+            await emailService.sendLeadingBidderEmail(
+                winnerBidderEmail.email,
                 updatedProduct.name,
+                winnerBidderEmail.full_name,
                 updatedProduct.auction_id
             );
+
+            const sellerEmail = await accountService.getAccountEmailById(updatedProduct.seller_id);
+            await emailService.sendNewBidsWinnerEmailForSeller(
+                sellerEmail.email,
+                updatedProduct.name,
+                sellerEmail.full_name,
+                updatedProduct.auction_id
+            );
+
+
+            if (product.winner_bidder_id) {
+                const outBidderEmail = await accountService.getAccountEmailById(product.winner_bidder_id);
+                await emailService.sendOutBidMail(
+                    outBidderEmail.email,
+                    updatedProduct.name,
+                    outBidderEmail.full_name,
+                    updatedProduct.auction_id
+                );
+            }
         }
         req.flash('success', 'You have successfully bought the product at the Buy Now price.');
         const retUrl = req.headers.referer || '/';
@@ -273,14 +303,34 @@ router.post('/detail/:id/bid', isAuth, async (req, res) => {
     const bidId = result[0].bid_id;
     await bidsService.updateTopBidder(Number(auction_id), bidId);
     const updatedProduct = await productsService.getProductsDetailById(auction_id);
+    console.log('updatedProduct:', updatedProduct);
+    if (product.winner_bidder_id !== updatedProduct.winner_bidder_id) {
+            const winnerBidderEmail = await accountService.getAccountEmailById(updatedProduct.winner_bidder_id);
+            await emailService.sendLeadingBidderEmail(
+                winnerBidderEmail.email,
+                updatedProduct.name,
+                winnerBidderEmail.full_name,
+                updatedProduct.auction_id
+            );
 
-    if (product.winner_bidder_id && updatedProduct.winner_bidder_id && product.winner_bidder_id !== updatedProduct.winner_bidder_id) {
-        const outBidderEmail = await accountService.getAccountEmailById(product.winner_bidder_id);
-        await sendOutBidMail(
-            outBidderEmail.email,
-            updatedProduct.name,
-            updatedProduct.auction_id
-        );
+            const sellerEmail = await accountService.getAccountEmailById(updatedProduct.seller_id);
+            await emailService.sendNewBidsWinnerEmailForSeller(
+                sellerEmail.email,
+                updatedProduct.name,
+                sellerEmail.full_name,
+                updatedProduct.auction_id
+            );
+
+
+            if (product.winner_bidder_id) {
+                const outBidderEmail = await accountService.getAccountEmailById(product.winner_bidder_id);
+                await emailService.sendOutBidMail(
+                    outBidderEmail.email,
+                    updatedProduct.name,
+                    outBidderEmail.full_name,
+                    updatedProduct.auction_id
+                );
+            }
     }
     req.flash('success', 'Your bid has been placed successfully.');
     const retUrl = req.headers.referer || '/';
@@ -290,10 +340,16 @@ router.post('/detail/:id/bid', isAuth, async (req, res) => {
 router.post('/detail/:id/bid/reject', isAuth, async (req, res) => {
     const { bidId } = req.body;
     const auction_id = req.params.id;
+    const product = await productsService.getProductsDetailById(auction_id);
     await bidsService.rejectBid(Number(bidId), Number(auction_id));
     await bidsService.updateTopBidder(Number(auction_id), bidId);
-    console.log('Rejected bid ID:', bidId);
-    console.log('For auction ID:', auction_id);
+    const userInfo = await bidsService.getUserInfoByBidId(bidId);
+    await emailService.sendRejectBidEmail(
+        userInfo[0].email,
+        product.name,
+        userInfo[0].full_name,
+        auction_id
+    );
     req.flash('success', 'The bid has been rejected successfully.');
     const retUrl = req.headers.referer || '/';
     res.redirect(retUrl);
@@ -350,7 +406,9 @@ router.post('/detail/:id/comments/create', isAuth, async (req, res) => {
     const auction_id = req.params.id;
 
     if (!content || !content.trim()) {
-        return res.status(400).send('Content is required');
+        req.flash('error', 'Comment content cannot be empty.');
+        const retUrl = req.headers.referer || '/';
+        return res.redirect(retUrl);
     }
 
     const comment = {
@@ -360,12 +418,38 @@ router.post('/detail/:id/comments/create', isAuth, async (req, res) => {
         user_id: req.user.id
     }
 
-    if (!parent_id) {
-      //send email notification to seller about new comment
-    }
+    const product = await productsService.getProductsDetailById(auction_id);
+    
+
+    
     //console.log(comment)
     await productsService.addProductComments(comment)
 
+    if (!parent_id && Number(req.user.id) !== product.seller_id) {
+        await emailService.sendNewCommentEmail(
+            req.user.email,
+            product.name,
+            req.user.full_name,
+            auction_id
+        );
+    }
+
+    if (Number(req.user.id) === product.seller_id) {
+
+        const participants = await productsService.getAuctionParticipants(Number(auction_id));
+        console.log('participants:', participants);
+
+        await Promise.all(participants.map(p => 
+            emailService.sendReplyCommentFromSellerEmail(
+                p.email,
+                product.name,
+                p.full_name,
+                auction_id
+            )
+        ));
+    }
+
+    req.flash('success', 'Your comment has been posted.');
     const retUrl = req.headers.referer || '/';
     res.redirect(retUrl);
 });

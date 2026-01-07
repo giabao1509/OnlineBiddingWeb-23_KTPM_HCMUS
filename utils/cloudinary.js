@@ -1,7 +1,3 @@
-// import dotenv from "dotenv";
-// dotenv.config({ path: './.env' });
-
-console.log('API KEY =', process.env.CLOUD_API_KEY);
 
 import * as cloudinary from 'cloudinary';
 

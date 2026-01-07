@@ -550,10 +550,10 @@
   const isSeller = {{isOrderSeller}}
   let fullName;
   if (isSeller) {
-    fullName = "{{sellerInfo.full_name}}";
+    fullName = "{{bidderInfo.full_name}}";
   }
   else {
-    fullName = "{{bidderInfo.full_name}}";
+    fullName = "{{sellerInfo.full_name}}";
   }
   const avatar = document.getElementById('avatar');
 
@@ -1115,7 +1115,7 @@ shippingremoveBtn.addEventListener('click', () => {
 
 
     <!-- Thông tin bên kia -->
-    <a href="/accounts/external_profile/{{#if isOrderSeller}} {{sellerInfo.id}} {{else}} {{bidderInfo.id}} {{/if}}" class="text-decoration-none text-dark">
+    <a href="/accounts/external_profile/{{#unless isOrderSeller}} {{sellerInfo.id}} {{else}} {{bidderInfo.id}} {{/unless}}" class="text-decoration-none text-dark">
     <div class="profile-hover-card card border-0 shadow-sm mt-3">
         <div class="card-body p-4">
           <div class="d-flex align-items-center">
@@ -1127,18 +1127,18 @@ shippingremoveBtn.addEventListener('click', () => {
 
 
             <div class="flex-grow-1">
-              <h2 class="fw-bold mb-3">{{#if isOrderSeller}} {{sellerInfo.full_name}} {{else}} {{bidderInfo.full_name}} {{/if}}</h2>
+              <h2 class="fw-bold mb-3">{{#unless isOrderSeller}} {{sellerInfo.full_name}} {{else}} {{bidderInfo.full_name}} {{/unless}}</h2>
 
               <div class="d-flex flex-wrap gap-3 align-items-center">
                 <!-- Joined Date -->
                 <div class="d-flex align-items-center text-muted">
                   <i class="bi bi-calendar-check me-2"></i>
-                  <span>Joined {{#if isOrderSeller}} {{formatFullDate sellerInfo.created_at}} {{else}} {{formatFullDate bidderInfo.created_at}} {{/if}}</span>
+                  <span>Joined {{#unless isOrderSeller}} {{formatFullDate sellerInfo.created_at}} {{else}} {{formatFullDate bidderInfo.created_at}} {{/unless}}</span>
                 </div>
 
                 <!-- Rating Percentage -->
                 <div class="d-flex align-items-center">
-                {{#if isOrderSeller}}
+                {{#unless isOrderSeller}}
 
                     <i class="bi bi-shield-check me-2
                     {{#if (gte sellerInfo.rating_percent 80)}}
@@ -1202,7 +1202,7 @@ shippingremoveBtn.addEventListener('click', () => {
                     ({{bidderInfo.total_reviews}} reviews)
                     </span>
 
-                {{/if}}
+                {{/unless}}
                 </div>
 
               </div>

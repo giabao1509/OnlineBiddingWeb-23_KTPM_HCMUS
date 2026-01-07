@@ -3,6 +3,30 @@ import cron from 'node-cron';
 import db from './db.js';
 import * as emailService from './mail.js';
 
+
+export function startOtpCleaner() {
+    cron.schedule('* * * * *', async () => {
+        try {
+            // Xóa OTP hết hạn và trả về số dòng xóa
+            const result = await db.raw(`
+                DELETE FROM otp
+                WHERE expired_at < NOW()
+                RETURNING id;  
+            `);
+
+            if (result.rows.length > 0) {
+                console.log(`Deleted ${result.rows.length} expired OTPs at ${new Date().toLocaleString()}`);
+            } else {
+                console.log('No expired OTPs to delete this minute');
+            }
+        } catch (err) {
+            console.error('Error deleting expired OTPs:', err);
+        }
+    });
+
+    console.log('OTP cleaner cron job started');
+}
+
 export function startAuctionUpdater() {
     cron.schedule('* * * * *', async () => {
         try {
@@ -31,11 +55,11 @@ export function startAuctionUpdater() {
                     : null;
 
                 // Gửi email thông báo cho người bán
-                emailService.sendMailForSeller(seller.email, name, seller.full_name, auction_id);
+                await emailService.sendMailForSeller(seller.email, name, seller.full_name, auction_id);
 
                 // Gửi email thông báo cho người thắng cuộc (nếu có)
                 if (winner) {
-                    emailService.sendMailForWinnerBidder(winner.email, name, winner.full_name, auction_id);
+                    await emailService.sendMailForWinnerBidder(winner.email, name, winner.full_name, auction_id);
                 }
             }
 

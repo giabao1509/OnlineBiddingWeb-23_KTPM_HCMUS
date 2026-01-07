@@ -3,11 +3,11 @@ import knex from 'knex';
 export default knex({
   client: 'pg',
   connection: {
-    host: 'aws-1-ap-south-1.pooler.supabase.com',
-    port: 5432,
-    user: 'postgres.iuzrcxsoxelckstiucle',
-    password: 'Bao15092005',
-    database: 'postgres'
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
   },
   pool: { min: 0, max: 10 },
 });

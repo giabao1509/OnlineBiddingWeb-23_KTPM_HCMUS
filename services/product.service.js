@@ -513,3 +513,34 @@ export function getTop5HighestPriceAuctions() {
         .orderBy('currentPrice', 'desc')
         .limit(5);
 }
+
+
+export function getAuctionParticipants(auction_id) {
+    return db('user_account')
+        .distinct('user_account.full_name', 'user_account.email')
+        .join('auction_bids', function() {
+            this.on('user_account.id', '=', 'auction_bids.bidder_id')
+                .andOn('auction_bids.auction_id', '=', auction_id);
+        })
+        .union(function() {
+            this.select('user_account.full_name', 'user_account.email')
+                .from('user_account')
+                .join('comments', function() {
+                    this.on('user_account.id', '=', 'comments.user_id')
+                        .andOn('comments.auction_id', '=', auction_id);
+                })
+                .whereNull('comments.parent_id');
+        });
+}
+
+
+
+export function getBiddersParticipants(auction_id) {
+    return db('user_account')
+        .distinct('user_account.full_name', 'user_account.email')
+        .join('auction_bids', function() {
+            this.on('user_account.id', '=', 'auction_bids.bidder_id')
+                .andOn('auction_bids.auction_id', '=', auction_id);
+        });
+}
+

@@ -6,9 +6,11 @@ import * as productsService from '../services/product.service.js';
 import * as accountService from '../services/account.service.js';
 import * as upgradeRequestService from '../services/upgrade_request.service.js';
 import * as auctionConfigService from '../services/auction_config.service.js';
+import * as bidService from '../services/bids.service.js';
 import { deleteImageByPublicId } from '../utils/cloudinary.js';
 import { generateRandomPassword } from '../utils/other.js';
 import { sendUserNewPasswordEmail } from '../utils/mail.js';
+
 import bcrypt from 'bcryptjs';
 
 router.get('/category', isAuth, isAdmin, async (req, res) => {
@@ -134,6 +136,8 @@ router.post('/auction/set_auto_extend', isAuth, isAdmin, async (req, res) => {
         extend_threshold_minutes,  
         extend_duration_minutes
     });
+
+    req.flash('success', 'Auction auto-extend configuration updated successfully.');
     res.redirect('/admin/auction');
     // const { id } = req.body;
     // await productsService.updateAuctionStatus(id, 'Active');
@@ -141,13 +145,34 @@ router.post('/auction/set_auto_extend', isAuth, isAdmin, async (req, res) => {
 });
 
 router.post('/auction/delete', isAuth, isAdmin, async (req, res) => {
+
     const { id } = req.body;
+    const bidCount = await bidService.countBidsByAuctionId(id);
+    const productDetails =  await productsService.getProductsDetailById(id);
+    if (Number(bidCount.count) > 0) {
+        req.flash('error', 'Cannot delete auction with existing bids.');
+        return res.redirect('/admin/auction');
+    }
+    
+    if (productDetails.winner_bidder_id) {
+        req.flash('error', 'Cannot delete auction that has a winner.');
+        return res.redirect('/admin/auction');
+    }
+
+
+    if (productDetails.status === 'Completed' && productDetails.winner_bidder_id) {
+        req.flash('error', 'Cannot delete completed auction with a winner.');
+        return res.redirect('/admin/auction');
+    }
+
+
     const auctionImages = await productsService.getAllProductsPhotos([id]);
     for (const image of auctionImages) {
         await deleteImageByPublicId(image.public_id);
     }
 
     await productsService.deleteAuctionById(id);
+    req.flash('success', 'Auction deleted successfully.');
     res.redirect('/admin/auction');
 });
 
@@ -203,45 +228,6 @@ router.get('/users', isAuth, isAdmin, async (req, res) => {
 
 
 
-router.post('/users/add', isAuth, isAdmin, async (req, res) => {
-    const { full_name, email, role, password, confirm_password } = req.body;
-    const checkExisting = await accountService.getAccountByEmail(email);
-    if (checkExisting) {
-        //return res.render('Admin/usermanagement', { error: "Email is already registered." });
-        req.flash('error', 'Email is already registered.');
-        return res.redirect('/admin/users');
-    }
-
-    if (password.length < 8) {
-        req.flash('error', 'Password must be at least 8 characters long.');
-        return res.redirect('/admin/users');
-    }
-
-    const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
-    if (!specialCharRegex.test(password)) {
-        req.flash('error', 'Password must contain at least one special character.');
-        return res.redirect('/admin/users');
-    }
-
-    if (password !== confirm_password) {
-        //return res.render('Admin/usermanagement', { error: "Passwords do not match." });
-        req.flash('error', 'Passwords do not match.');
-        return res.redirect('/admin/users');
-    }
-
-    const hashedPassword = bcrypt.hashSync(password, 10);
-    const newUser = {
-        full_name,
-        email,
-        role,
-        password: hashedPassword
-    };
-    console.log(newUser);
-    await accountService.addAccount(newUser);
-    req.flash('success', 'New user added successfully.');
-    res.redirect('/admin/users');
-});
-
 router.post('/users/reset_password', isAuth, isAdmin, async (req, res) => {
     const { id } = req.body;
     
@@ -251,28 +237,6 @@ router.post('/users/reset_password', isAuth, isAdmin, async (req, res) => {
     const hashedPassword = bcrypt.hashSync(newPassword, 10);
     await accountService.updateAccount(id, { password: hashedPassword });
     req.flash('success', 'Password reset successfully.');
-    res.redirect('/admin/users');
-});
-
-router.post('/users/edit', isAuth, isAdmin, async (req, res) => {
-    const { id, full_name, email, role } = req.body;
-    const updatedData = {
-        full_name,
-        email,
-        role
-    };
-    const checkExisting = await accountService.getAccountByEmail(email);
-    if (checkExisting && Number(checkExisting.id) !== Number(id)) {
-        req.flash('error', 'Email is already registered to another user.');
-        return res.redirect('/admin/users');
-    }
-    try {
-    await accountService.updateAccount(id, updatedData);
-    } catch (error) {
-        req.flash('error', 'Error updating user. Please try again.');
-        return res.redirect('/admin/users');
-    }
-    req.flash('success', 'User updated successfully.');
     res.redirect('/admin/users');
 });
 
