@@ -9,9 +9,8 @@ AuctionHub is a 2-person project, defined as a high-performance auction platform
 ## Features
 * **Scheduled Bid Updates:** Auction end times are automatically updated every minute using cron jobs.
 * **Outbid Notifications:** Users are notified via email if their bid is surpassed.
-* **Winning Payment Flow:** Integrated payment handling for winning bidders.
 * **Watchlist & History:** Users can track favorite items and view their bidding history.
-* **Secure Authentication:** Users login via JWT or session-based authentication.
+* **Secure Authentication:** Users login via JWT authentication.
 
 ---
 
@@ -22,7 +21,7 @@ AuctionHub is a 2-person project, defined as a high-performance auction platform
 | **Frontend**      | Handlebars, Bootstrap, HTML |
 | **Backend**       | Node.js, Express            |
 | **Database**      | PostgreSQL                  |
-| **Auth**          | JWT / Session               |
+| **Auth**          | JWT                         |
 | **Email**         | Nodemailer                  |
 | **Task Scheduler**| Node-Cron                   |
 
