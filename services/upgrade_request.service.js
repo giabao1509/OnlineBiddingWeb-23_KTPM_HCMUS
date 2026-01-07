@@ -34,5 +34,6 @@ export function createUpgradeRequest(request) {
 export function getUpgradeRequestByCustomerId(customerId) {
     return db('upgrade_request')
         .where('customer_id', customerId)
+        .orderBy('created_at', 'desc')
         .first();
 }

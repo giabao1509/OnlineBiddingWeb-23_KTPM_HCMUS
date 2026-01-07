@@ -157,10 +157,15 @@
                             <a href="/products/detail/{{this.auction_id}}" class="text-decoration-none">
                                 <img src="{{this.image_url}}" class="card-img-top" alt="{{this.name}}" style="height: 200px; object-fit: cover;">
                             </a>
-                            {{#if this.featured}}
-                            <span class="badge bg-warning text-dark position-absolute top-0 start-0 m-2">
-                                <i class="bi bi-star-fill"></i> Featured
-                            </span>
+                            {{#if this.isNew}}
+                                <div class="position-absolute top-0 start-0 m-2">
+                                    <div class="card shadow-sm border-0 bg-danger text-white px-2 py-1">
+                                        <div class="d-flex align-items-center small fw-semibold">
+                                            <i class="bi bi-lightning-fill me-1"></i>
+                                            NEW
+                                        </div>
+                                    </div>
+                                </div>
                             {{/if}}
                             <span class="badge bg-dark position-absolute top-0 end-0 m-2">
                                 {{this.category_name}}

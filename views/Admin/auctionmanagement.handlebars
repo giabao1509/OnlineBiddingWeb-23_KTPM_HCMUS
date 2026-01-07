@@ -255,10 +255,10 @@
             </div>
             
             <!-- Pagination -->
-            {{#if (gt totalPages 1)}}
             <div class="card-footer bg-white border-top py-3">
                 <div class="d-flex justify-content-between align-items-center">
                     <small class="text-muted">Showing page {{currentPage}} of {{totalPages}}</small>
+                    {{#if (gt totalPages 1)}}
                     <nav>
                         <ul class="pagination pagination-sm mb-0">
                             <li class="page-item {{#if isFirstPage}}disabled{{/if}}">
@@ -278,9 +278,9 @@
                             </li>
                         </ul>
                     </nav>
+                    {{/if}}
                 </div>
             </div>
-            {{/if}}
         </div>
     </div>
 </div>

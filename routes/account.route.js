@@ -32,8 +32,8 @@ router.post('/signup', verifyCaptcha, async (req, res) => {
 
     const existingAccount = await accountService.getAccountByEmail(req.body.email);
     if (existingAccount) {
+        req.flash('error', 'This email is already registered. Please log in or use another email.');
         return res.render('Accounts/signup', {
-            error: "This email is already registered. Please log in or use another email.",
             RECAPTCHA_SITE_KEY: process.env.RECAPTCHA_SITE_KEY,
             fullName: req.body.fullName,
             email: req.body.email,
@@ -115,17 +115,27 @@ router.post('/signin', async (req, res) => {
     const email = req.body.email
     const password = req.body.password 
     const user = await accountService.getAccountByEmail(email);
-
+    const remember = req.body.remember === 'on';
+    
     if (!user || !bcrypt.compareSync(password, user.password)) {
+        req.flash('error', 'Invalid email or password.');
         return res.render('Accounts/signin', { 
-            error: 'Email or password is incorrect',
             email: email,
             RECAPTCHA_SITE_KEY: process.env.RECAPTCHA_SITE_KEY
         });
     }
 
+    if (user.status === 'Blocked') {
+        req.flash('error', 'Your account has been blocked. Please contact support for assistance.');
+        return res.render('Accounts/signin', {
+            email: email,
+            RECAPTCHA_SITE_KEY: process.env.RECAPTCHA_SITE_KEY
+        });
+    }
+
+    const tokenAge = remember ? 7*24*3600*1000 : 3600*1000; // 7 days or 1 hour
     const token = generateToken(user);
-    res.cookie('authToken', token, { httpOnly: true, maxAge: 3600*1000 });
+    res.cookie('authToken', token, { httpOnly: true, maxAge: tokenAge });
 
     req.flash('success', 'Signin successfully.');
     res.redirect('/');
@@ -245,7 +255,8 @@ router.post('/verifyotp', async (req, res) => {
     const token = req.cookies.resetToken;
 
     if (!token) {
-        return res.render("Accounts/verifyotp", { error: "Missing or expired token." });
+        req.flash('error', 'Missing or expired token.');
+        return res.render("Accounts/verifyotp");
     }
 
     let email;
@@ -302,20 +313,69 @@ router.post('/resetpassword', async (req, res) => {
     res.render('Accounts/resetpassword', {success: "Password has been changed.", disabled: true });
 });
 
-router.get('/profile', isAuth, (req, res) => {
-    //console.log("Rendering profile for user:", userInfo);
+router.get('/profile', isAuth, async (req, res) => {
+
+    const userRating = await accountService.getUserRatingById(req.user.id);
+    userRating.rating_percent = Number(userRating.rating_score) * 100;
+    const activeBids = await productsService.countAllBiddingAuctions(req.user.id);
+    const wonAuctions = await productsService.countAllWonAuctions(req.user.id);
+    const watchlist = await productsService.countAllWatchListItems(req.user.id);
     const stats = {
-    activeBids: 3,
-    wonAuctions: 1,
-    watchlist: 4,
-    totalSpent: 12.5
+        activeBids: activeBids.count,
+        wonAuctions: wonAuctions.count,
+        watchlist: watchlist.count
     };
+    const userBasicInfo = await accountService.getAccountByEmail(req.user.email);
+    const upgrade_request = await upgradeRequestService.getUpgradeRequestByCustomerId(req.user.id);
 
-
+    //console.log('Upgrade request:', upgrade_request);
     res.render('Accounts/profile', {
         stats,
+        userBasicInfo,
+        userRating: userRating,
+        upgrade_request: upgrade_request 
     });
 });
+
+router.post('/profile/update', isAuth, async (req, res) => {
+    const updatedData = {
+        full_name: req.body.name,
+        email: req.body.email,
+        address: req.body.address,
+        oldPassword: req.body.oldPassword,
+        newPassword: req.body.newPassword,
+        confirmPassword: req.body.confirmPassword
+    };
+
+    const existingAccount = await accountService.getAccountByEmail(req.body.email);
+    if (existingAccount) {
+        if (existingAccount.id !== req.user.id) {
+            req.flash('error', 'This email is already registered. Please use another email.');
+            return res.redirect('/accounts/profile');
+        }
+    }
+
+    if (updatedData.newPassword) {
+        const user = await accountService.getAccountByEmail(req.user.email);
+        if (!bcrypt.compareSync(updatedData.oldPassword, user.password)) {
+            req.flash('error', 'Old password is incorrect.');
+            return res.redirect('/accounts/profile');
+        }
+        
+        updatedData.password = bcrypt.hashSync(updatedData.newPassword, 10);
+    }
+
+    delete updatedData.oldPassword;
+    delete updatedData.newPassword;
+    delete updatedData.confirmPassword;
+
+    await accountService.updateAccount(req.user.id, updatedData);
+
+
+    req.flash('success', 'Profile updated successfully.');
+    res.redirect('/accounts/profile');
+});
+
 
 router.post('/profile/upgrade_seller', isAuth, async (req, res) => {
     try {

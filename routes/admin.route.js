@@ -7,6 +7,8 @@ import * as accountService from '../services/account.service.js';
 import * as upgradeRequestService from '../services/upgrade_request.service.js';
 import * as auctionConfigService from '../services/auction_config.service.js';
 import { deleteImageByPublicId } from '../utils/cloudinary.js';
+import { generateRandomPassword } from '../utils/other.js';
+import { sendUserNewPasswordEmail } from '../utils/mail.js';
 import bcrypt from 'bcryptjs';
 
 router.get('/category', isAuth, isAdmin, async (req, res) => {
@@ -156,7 +158,7 @@ router.get('/users', isAuth, isAdmin, async (req, res) => {
     let users = [];
     let upgradeRequests = [];
     const page = parseInt(req.query.page) || 1;
-    const limit = 1;
+    const limit = 5;
     const offset = (page - 1) * limit;
     let totalPages = 1;
      if (tab === 'user') {
@@ -241,23 +243,12 @@ router.post('/users/add', isAuth, isAdmin, async (req, res) => {
 });
 
 router.post('/users/reset_password', isAuth, isAdmin, async (req, res) => {
-    const { id, new_password, confirm_new_password } = req.body;
-    if (new_password.length < 8) {
-        req.flash('error', 'Password must be at least 8 characters long.');
-        return res.redirect('/admin/users');
-    }
-    const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
-    if (!specialCharRegex.test(new_password)) {
-        req.flash('error', 'Password must contain at least one special character.');
-        return res.redirect('/admin/users');
-    }
-
-    if (new_password !== confirm_new_password) {
-        req.flash('error', 'Passwords do not match.');
-        return res.redirect('/admin/users');
-    }
-
-    const hashedPassword = bcrypt.hashSync(new_password, 10);
+    const { id } = req.body;
+    
+    const userEmail = await accountService.getAccountEmailById(id);
+    const newPassword = generateRandomPassword(8);
+    await sendUserNewPasswordEmail(userEmail.email, newPassword);
+    const hashedPassword = bcrypt.hashSync(newPassword, 10);
     await accountService.updateAccount(id, { password: hashedPassword });
     req.flash('success', 'Password reset successfully.');
     res.redirect('/admin/users');

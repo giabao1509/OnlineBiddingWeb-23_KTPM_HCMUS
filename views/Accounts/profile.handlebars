@@ -14,7 +14,7 @@
     <!-- Left Column - Profile Information -->
     <div class="col-lg-8">
       <!-- User Avatar & Rating Card -->
-      <a href="/accounts/external_profile/{{user.id}}" class="text-decoration-none text-dark">
+      <a href="/accounts/external_profile/{{userBasicInfo.id}}" class="text-decoration-none text-dark">
       <div class="card border-0 shadow-sm mb-4 avatar-card profile-hover-card">
         <div class="card-body p-4">
           <div class="d-flex align-items-center">
@@ -25,22 +25,17 @@
             </div>
 
             <div class="flex-grow-1">
-              <h2 class="fw-bold mb-3">{{user.full_name}}</h2>
+              <h2 class="fw-bold mb-3">{{userBasicInfo.full_name}}</h2>
 
               <div class="d-flex flex-wrap gap-3 align-items-center">
-                <!-- Joined Date -->
-                <div class="d-flex align-items-center text-muted">
-                  <i class="bi bi-calendar-check me-2"></i>
-                  <span>Joined {{user.created_at}}</span>
-                </div>
 
                 <!-- Rating Percentage -->
                 <div class="d-flex align-items-center">
-                  <i class="bi bi-star-fill me-1 {{#if (gte user.rating_percent 80)}}text-success{{else if (gte user.rating_percent 50)}}text-warning{{else}}text-danger{{/if}}"></i>
-                  <span class="badge {{#if (gte user.rating_percent 80)}}bg-success{{else if (gte user.rating_percent 50)}}bg-warning{{else}}bg-danger{{/if}} rounded-pill px-3 py-2 fs-6">
-                    {{user.rating_percent}}%
+                  <i class="bi bi-star-fill me-1 {{#if (gte userRating.rating_percent 80)}}text-success{{else if (gte userRating.rating_percent 50)}}text-warning{{else}}text-danger{{/if}}"></i>
+                  <span class="badge {{#if (gte userRating.rating_percent 80)}}bg-success{{else if (gte userRating.rating_percent 50)}}bg-warning{{else}}bg-danger{{/if}} rounded-pill px-3 py-2 fs-6">
+                    {{userRating.rating_percent}}%
                   </span>
-                  <span class="text-muted ms-2 small">({{user.total_reviews}} reviews)</span>
+                  <span class="text-muted ms-2 small">({{userRating.total_reviews}} reviews)</span>
                 </div>
               </div>
             </div>
@@ -66,11 +61,11 @@
             <div class="row g-4 mb-4">
               <div class="col-md-6">
                 <label class="text-muted small text-uppercase mb-2 d-block">Full Name</label>
-                <div class="h5 mb-0 text-dark">{{user.full_name}}</div>
+                <div class="h5 mb-0 text-dark">{{userBasicInfo.full_name}}</div>
               </div>
               <div class="col-md-6">
                 <label class="text-muted small text-uppercase mb-2 d-block">Email Address</label>
-                <div class="h5 mb-0 text-dark">{{user.email}}</div>
+                <div class="h5 mb-0 text-dark">{{userBasicInfo.email}}</div>
               </div>
             </div>
 
@@ -80,20 +75,20 @@
               <div class="col-md-6">
                 <label class="text-muted small text-uppercase mb-2 d-block">Member Since</label>
                 <div class="text-dark">
-                  <i class="bi bi-calendar-check me-2 text-muted"></i>{{user.created_at}}
+                  <i class="bi bi-calendar-check me-2 text-muted"></i>{{formatFullDate userBasicInfo.created_at}}
                 </div>
               </div>
+               {{#if userBasicInfo.address}}
               <div class="col-md-6">
-                <label class="text-muted small text-uppercase mb-2 d-block">Account Status</label>
-                <span class="badge bg-success rounded-pill px-3 py-2">
-                  <i class="bi bi-check-circle me-1"></i>Active
-                </span>
+                <label class="text-muted small text-uppercase mb-2 d-block">User Address</label>
+                <div class="h5 mb-0 text-dark">{{userBasicInfo.address}}</div>
               </div>
+              {{/if}}
             </div>
           </div>
 
           <!-- Edit Form (Hidden by default) -->
-          <form id="profileForm" action="/profile/update" method="POST" style="display:none;">
+          <form id="profileForm" action="/accounts/profile/update" method="POST" style="display:none;">
             <div class="mb-4">
               <h6 class="text-dark mb-3">
                 <i class="bi bi-person me-2"></i>Basic Information
@@ -101,11 +96,16 @@
               <div class="row g-3">
                 <div class="col-12">
                   <label class="form-label fw-semibold">Full Name</label>
-                  <input type="text" name="name" class="form-control" value="{{user.full_name}}" required>
+                  <input type="text" name="name" class="form-control" value="{{userBasicInfo.full_name}}" required>
                 </div>
                 <div class="col-12">
                   <label class="form-label fw-semibold">Email Address</label>
-                  <input type="email" name="email" class="form-control" value="{{user.email}}" required>
+                  <input type="email" name="email" class="form-control" value="{{userBasicInfo.email}}" required>
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label fw-semibold">Address</label>
+                  <input type="text" name="address" class="form-control" value="{{userBasicInfo.address}}" required>
                 </div>
               </div>
             </div>
@@ -131,8 +131,8 @@
                 </div>
                 <div class="col-12">
                   <label class="form-label fw-semibold">New Password</label>
-                  <input type="password" name="newPassword" class="form-control" placeholder="Minimum 6 characters">
-                  <small class="text-muted">Must be at least 6 characters long</small>
+                  <input type="password" name="newPassword" class="form-control" placeholder="Minimum 8 characters">
+                  <small class="text-muted">Must be at least 8 characters long</small>
                 </div>
                 <div class="col-12">
                   <label class="form-label fw-semibold">Confirm New Password</label>
@@ -153,32 +153,55 @@
         </div>
       </div>
 
-      {{#if isBuyer}}
-      <!-- Upgrade Request Card -->
-      <div class="card border-0 shadow-sm">
-        <div class="card-header bg-warning bg-opacity-10 border-0 py-3">
-          <div class="d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 text-dark">
-              <i class="bi bi-arrow-up-circle me-2 text-warning"></i>Upgrade to Seller
-            </h5>
-            <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#upgradeModal" id="requestUpgradeBtn">
-              <i class="bi bi-send me-1"></i>Request
-            </button>
+      {{#if (neq upgrade_request.status 'Approved')}}
+        <!-- Upgrade Request Card -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-warning bg-opacity-10 border-0 py-3">
+              <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-dark">
+                  <i class="bi bi-arrow-up-circle me-2 text-warning"></i>Upgrade to Seller
+                </h5>
+                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#upgradeModal" id="requestUpgradeBtn">
+                  <i class="bi bi-send me-1"></i>Request
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+              <p class="mb-2 text-muted">Current upgrade request status:</p>
+              {{#if upgrade_request}}
+                {{#if (eq upgrade_request.status 'Pending')}}
+                <span id="upgradeRequestStatus" class="badge bg-warning rounded-pill px-3 py-2">
+                    <i class="bi bi-hourglass-split me-1"></i>Pending
+                  </span>
+                {{else if (eq upgrade_request.status 'Expired')}}
+                </span>
+                <span id="upgradeRequestStatus" class="badge bg-danger rounded-pill px-3 py-2">
+                  <i class="bi bi-clock me-1"></i>Expired
+                </span>
+                {{else}}
+                </span>
+                <span id="upgradeRequestStatus" class="badge bg-secondary rounded-pill px-3 py-2">
+                  <i class="bi bi-clock me-1"></i>None
+                </span>
+                {{/if}}
+              {{/if}}
+            </div>
+        </div>
+      {{else}}
+          <!-- Seller Badge -->
+          <div class="alert alert-success d-flex align-items-center border-0 shadow-sm">
+            <i class="bi bi-shop fs-3 me-3"></i>
+            <div>
+              <h5 class="mb-1">You are a Seller!</h5>
+              <small class="text-muted">Thank you for being a valued seller on our platform.</small>
+            </div>
           </div>
-        </div>
-        <div class="card-body">
-          <p class="mb-2 text-muted">Current upgrade request status:</p>
-          <span id="upgradeRequestStatus" class="badge bg-secondary rounded-pill px-3 py-2">
-            <i class="bi bi-clock me-1"></i>None
-          </span>
-        </div>
-      </div>
-      {{/if}}
+          
+       {{/if}}
     </div>
-
     <!-- Right Column - Account Statistics -->
     <div class="col-lg-4">
-      <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
+      <div class="card border-0 shadow-sm" style="top: 20px;">
         <div class="card-header bg-dark text-white border-0 py-3">
           <h5 class="mb-0">
             <i class="bi bi-bar-chart me-2"></i>Account Activity
@@ -224,21 +247,6 @@
                 <div class="flex-grow-1 ms-3">
                   <small class="text-muted d-block mb-1">Watchlist Items</small>
                   <h4 class="mb-0 fw-bold">{{stats.watchlist}}</h4>
-                </div>
-              </div>
-            </div>
-
-            <div class="list-group-item border-0 py-3">
-              <div class="d-flex align-items-center">
-                <div class="flex-shrink-0">
-                  <div class="rounded-circle bg-warning bg-opacity-10 p-3">
-                    <i class="bi bi-wallet2 fs-4 text-warning"></i>
-                  </div>
-                </div>
-                <div class="flex-grow-1 ms-3">
-                  <small class="text-muted d-block mb-1">Total Spent</small>
-                  <h4 class="mb-0 fw-bold">{{stats.totalSpent}}</h4>
-                  <small class="text-muted">Million VND</small>
                 </div>
               </div>
             </div>
@@ -327,6 +335,7 @@
 {{/section}}
 
 {{#section 'js'}}
+<script src="https://accounts.google.com/gsi/client?hl=en" async defer></script>
 <script>
   function stringToColor(str) {
     let hash = 0;
@@ -342,13 +351,13 @@
     return name?.trim()?.charAt(0)?.toUpperCase() || '?';
   }
 
-  const fullName = "{{sellerInfo.full_name}}";
+  const fullName = "{{userBasicInfo.full_name}}";
   const avatar = document.getElementById('avatar');
 
   avatar.textContent = getInitial(fullName);
   avatar.style.backgroundColor = stringToColor(fullName);
 </script>
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
   const editBtn = document.getElementById('editProfileBtn');
   const cancelBtn = document.getElementById('cancelEditBtn');
@@ -376,19 +385,43 @@
     if (newPassword || confirmPassword || oldPassword) {
       if (!oldPassword) {
         e.preventDefault();
-        alert('Please enter your current password');
+        swal.fire({
+          title: 'Validation Error',
+          text: 'Please enter your current password to change your password.',
+          icon: 'error'
+        });
         return;
       }
       if (newPassword !== confirmPassword) {
         e.preventDefault();
-        alert('New passwords do not match');
+        swal.fire({
+          title: 'Validation Error',
+          text: 'New password and confirmation do not match.',
+          icon: 'error'
+        });
         return;
       }
-      if (newPassword.length < 6) {
+
+      if (newPassword.length < 8) {
         e.preventDefault();
-        alert('New password must be at least 6 characters long');
+        swal.fire({
+          title: 'Validation Error',
+          text: 'New password must be at least 8 characters long',
+          icon: 'error'
+        });
         return;
       }
+
+      const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
+      if (!specialCharRegex.test(newPassword)) {
+          Swal.fire({
+              title: 'Validation Error',
+              text: 'Password must contain at least one special character.',
+              icon: 'error'
+          });
+          return;
+      }
+
     }
   });
 </script>

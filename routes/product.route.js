@@ -44,9 +44,10 @@ router.get('/', async (req, res) => {
         if (p.top_bidder_name) {
             p.top_bidder_name = maskName(p.top_bidder_name);
         }
+        p.isNew = (Date.now() - new Date(p.created_at).getTime()) < 2 * 24 * 60 * 60 * 1000;
     });
 
-    // console.log('products:', products);
+    console.log('products:', products);
 
     totalProducts = await productsService.countByCategoryKeyword(c, kw);
     

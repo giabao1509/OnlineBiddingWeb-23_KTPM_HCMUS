@@ -4,10 +4,6 @@ import { isAuth, isSeller } from '../middlewares/auth.mdw.js';
 import upload from '../utils/upload.js';
 const router = express.Router();
 
-router.get('/dashboard', isAuth, isSeller, async (req, res) => {
-    res.render('Seller/dashboard');
-});
-
 router.get('/create_product', isAuth, isSeller, async (req, res) => {
     try {
         res.render('Seller/createproduct', {
@@ -63,10 +59,9 @@ router.post('/create_product', isAuth, isSeller, upload.array('images', 10), asy
         console.log(images);
 
         await productsService.addProductImages(images);
-        res.render('Seller/createproduct', {
-            categoriesJson: JSON.stringify(res.locals.categories),
-            success: 'Product created successfully!'
-        });
+        req.flash('success', 'Product created successfully!');
+        const retUrl = req.headers.referer || '/';
+        res.redirect(retUrl);
     } catch (err) {
         console.error(err);
     }

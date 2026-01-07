@@ -98,6 +98,7 @@ export function searchByCategoryKeywordAndSort(category_name, keyword, limit, of
         .leftJoin('user_account as b', 'b.id', 'a.winner_bidder_id')
         .select(
             'a.name',
+            'a.created_at',
             'a.end_time',          
             'a.auction_id',
             'ai.image_url',
@@ -188,37 +189,7 @@ export function addProductImages(images) {
   return db('auction_images').insert(images);
 }
 
-// SELECT 
-//     a.auction_id AS ID,
-//     a.name AS Name,
-//     c.cat_name AS Category,
-//     u.full_name AS Seller,
-//     CASE 
-//         WHEN b_max_winner.max_bid IS NULL THEN a.starting_price
-//         ELSE LEAST(
-//             b_max_winner.max_bid,
-//             COALESCE(b_second.max_bid + a.bid_step, a.starting_price)
-//         )
-//     END AS Current_Price,
-//     a.status AS Status
-// FROM auction a
-// JOIN user_account u ON a.seller_id = u.id
-// LEFT JOIN categories c ON a.category_id = c.id
-// -- Lấy max bid của winner
-// LEFT JOIN (
-//     SELECT auction_id, MAX(max_bid) AS max_bid
-//     FROM auction_bids
-//     WHERE is_winning = TRUE
-//     GROUP BY auction_id
-// ) b_max_winner ON b_max_winner.auction_id = a.auction_id
-// -- Lấy max bid của người thứ 2 (không phải winner)
-// LEFT JOIN (
-//     SELECT auction_id, MAX(max_bid) AS max_bid
-//     FROM auction_bids
-//     WHERE is_winning = FALSE
-//     GROUP BY auction_id
-// ) b_second ON b_second.auction_id = a.auction_id
-// ORDER BY a.auction_id;
+
 export function getAllAuctionsForAdmin(limit, offset) {
     return db('auction as a')
         .join('user_account as u', 'a.seller_id', 'u.id')       
@@ -369,7 +340,6 @@ export function getActiveAuctionsBySellerId(seller_id, limit, offset) {
     .leftJoin('auction_images as ai', function() {
         this.on('ai.auction_id', '=', 'a.auction_id').andOn('ai.is_thumbnail', '=', db.raw('true'));
     })
-    .leftJoin('auction_bids as ab', 'ab.auction_id', 'a.auction_id')
     .where('a.seller_id', seller_id)
     .andWhere('a.status', 'Bidding')
     .select(
@@ -421,4 +391,125 @@ export function removeFromWatchList(user_id, auction_id) {
     .where('user_id', user_id)
     .andWhere('auction_id', auction_id)
     .del();
+}
+
+
+export function getTop5EndingSoonAuctions() {
+    return db('auction as a')
+        .join('categories as c', 'c.id', 'a.category_id')
+        .leftJoin('categories as p', 'p.id', 'c.parent_id')
+        .leftJoin('auction_images as ai', function () {
+            this.on('ai.auction_id', '=', 'a.auction_id')
+                .andOn('ai.is_thumbnail', '=', db.raw('true'));
+        })
+        .join('user_account as s', 's.id', 'a.seller_id')
+        .leftJoin('user_account as b', 'b.id', 'a.winner_bidder_id')
+        .select(
+            'a.auction_id',
+            'a.name',
+            'a.end_time',
+            'ai.image_url',
+            's.full_name as seller_name',
+            'b.full_name as top_bidder_name',
+            'c.cat_name as category_name',
+            'p.cat_name as parent_name',
+            db.raw(`
+                CASE 
+                    WHEN a.current_price IS NULL OR a.current_price = 0 
+                    THEN a.starting_price 
+                    ELSE a.current_price 
+                END AS "currentPrice"
+            `),
+            db.raw(`
+                (SELECT COUNT(*) 
+                 FROM auction_bids ab 
+                 WHERE ab.auction_id = a.auction_id
+                ) AS bid_count
+            `)
+        )
+        .where('a.status', 'Bidding')
+        .andWhere('a.end_time', '>', db.raw('NOW()'))
+        .orderBy('a.end_time', 'asc')
+        .limit(5);
+}
+
+
+export function getTop5MostBidsAuctions() {
+    return db('auction as a')
+        .join('categories as c', 'c.id', 'a.category_id')
+        .leftJoin('categories as p', 'p.id', 'c.parent_id')
+        .leftJoin('auction_images as ai', function () {
+            this.on('ai.auction_id', '=', 'a.auction_id')
+                .andOn('ai.is_thumbnail', '=', db.raw('true'));
+        })
+        .join('user_account as s', 's.id', 'a.seller_id')
+        .leftJoin('user_account as b', 'b.id', 'a.winner_bidder_id')
+        .select(
+            'a.auction_id',
+            'a.name',
+            'a.end_time',
+            'ai.image_url',
+            's.full_name as seller_name',
+            'b.full_name as top_bidder_name',
+            'c.cat_name as category_name',
+            'p.cat_name as parent_name',
+            db.raw(`
+                CASE 
+                    WHEN a.current_price IS NULL OR a.current_price = 0 
+                    THEN a.starting_price 
+                    ELSE a.current_price 
+                END AS "currentPrice"
+            `),
+            db.raw(`
+                (SELECT COUNT(*) 
+                 FROM auction_bids ab 
+                 WHERE ab.auction_id = a.auction_id
+                ) AS bid_count
+            `)
+        )
+        .where('a.status', 'Bidding')
+        .andWhere('a.end_time', '>', db.raw('NOW()'))
+        .orderBy('bid_count', 'desc')
+        .limit(5);
+}
+
+
+
+export function getTop5HighestPriceAuctions() {
+    return db('auction as a')
+        .join('categories as c', 'c.id', 'a.category_id')
+        .leftJoin('categories as p', 'p.id', 'c.parent_id')
+        .leftJoin('auction_images as ai', function () {
+            this.on('ai.auction_id', '=', 'a.auction_id')
+                .andOn('ai.is_thumbnail', '=', db.raw('true'));
+        })
+        .join('user_account as s', 's.id', 'a.seller_id')
+        .leftJoin('user_account as b', 'b.id', 'a.winner_bidder_id')
+        .select(
+            'a.auction_id',
+            'a.name',
+            'a.end_time',
+            'ai.image_url',
+            's.full_name as seller_name',
+            'b.full_name as top_bidder_name',
+            'c.cat_name as category_name',
+            'p.cat_name as parent_name',
+            db.raw(`
+                CASE 
+                    WHEN a.current_price IS NULL OR a.current_price = 0 
+                    THEN a.starting_price 
+                    ELSE a.current_price 
+                END AS "currentPrice"
+            `),
+            db.raw(`
+                (SELECT COUNT(*) 
+                 FROM auction_bids ab 
+                 WHERE ab.auction_id = a.auction_id
+                ) AS bid_count
+            `)
+        )
+        .where('a.status', 'Bidding')
+        .andWhere('a.end_time', '>', db.raw('NOW()'))
+        .orderBy('currentPrice', 'desc')
+        .limit(5);
 }
