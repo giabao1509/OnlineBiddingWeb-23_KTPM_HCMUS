@@ -137,8 +137,7 @@ router.post('/signin', async (req, res) => {
     res.cookie('authToken', token, { httpOnly: true, maxAge: tokenAge });
 
     req.flash('success', 'Signin successfully.');
-    const retUrl = req.headers.referer || '/';
-    res.redirect(retUrl);
+    res.redirect('/');
 });
 
 
